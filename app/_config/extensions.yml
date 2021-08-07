@@ -1,0 +1,6 @@
+---
+Name: my-extension
+---
+SilverStripe\SiteConfig\SiteConfig:
+  extensions:
+    - App\Web\Extension\SiteconfigExtension

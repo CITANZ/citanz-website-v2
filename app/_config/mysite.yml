@@ -1,0 +1,47 @@
+---
+Name: leoss4bk
+---
+SilverStripe\Core\Manifest\ModuleManifest:
+  project: app
+
+SilverStripe\Forms\HTMLEditor\HTMLEditorField:
+  insert_width: 1920
+
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\Control\Director:
+    properties:
+      Middlewares:
+        PasswordExpirationMiddleware: null
+  Intervention\Image\ImageManager:
+    constructor:
+      - { driver: imagick }
+  SilverStripe\Assets\Image_Backend:
+    properties:
+      Quality: 90
+
+SilverStripe\Assets\File:
+  force_resample: true
+  insert_width: 1920
+  insert_height: 1920
+  allowed_extensions:
+    - svg
+
+SilverStripe\Assets\Flysystem\AssetAdapter:
+  file_permissions:
+    file:
+      public: 0775
+      private: 0775
+    dir:
+      public: 0775
+      private: 0775
+
+SilverStripe\Control\Email\Email:
+  admin_email: leo@leochen.co.nz
+
+---
+Only:
+  environment: 'live'
+---
+SilverStripe\Control\Email\Email:
+  noreply_email:
+    noreply@cita.org.nz: 'CITANZ'

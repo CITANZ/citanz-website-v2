@@ -1,0 +1,19 @@
+---
+Name: livegooglesitemaps
+After: googlesitemaps
+Only:
+  environment: 'live'
+---
+Wilr\GoogleSitemaps\GoogleSitemap:
+  enabled: true
+  objects_per_sitemap: 1000
+  google_notification_enabled: false
+  use_show_in_search: true
+---
+Name: nonlivegooglesitemaps
+After: googlesitemaps
+Except:
+  environment: 'live'
+---
+Wilr\GoogleSitemaps\GoogleSitemap:
+  enabled: false

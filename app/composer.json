@@ -1,0 +1,9 @@
+{
+    "name": "leochenftw/leoss4bk",
+    "extra": {
+        "expose": [
+            "client/dist",
+            "client/js/cms"
+        ]
+    }
+}

@@ -1,0 +1,13 @@
+#tinymce {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
+  @import "../../../node_modules/bootstrap/scss/bootstrap-reboot";
+  @import "../../../node_modules/bootstrap/scss/bootstrap-grid";
+  @import "../../../node_modules/bootstrap/scss/utilities/text";
+
+  @import "variables";
+  @import "components/typography";
+  @import "components/buttons";
+}

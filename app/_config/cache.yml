@@ -1,0 +1,8 @@
+---
+Name: cachehandler
+---
+SilverStripe\Core\Injector\Injector:
+  Psr\SimpleCache\CacheInterface.PageData:
+    factory: SilverStripe\Core\Cache\CacheFactory
+    constructor:
+      namespace: "PageData"

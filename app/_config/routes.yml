@@ -1,0 +1,18 @@
+---
+Name: approutes
+After:
+  - '#rootroutes'
+  - '#coreroutes'
+---
+SilverStripe\Control\Director:
+  rules:
+    'api/v/1/session' : 'App\Web\API\SessionAPI'
+    'api/v/1/signin' : 'App\Web\API\SigninAPI'
+    #'api/v/1/signup' : 'App\Web\API\SignupAPI'
+    'api/v/1/signout' : 'App\Web\API\SignoutAPI'
+    'api/v/1/search' : 'App\Web\API\SearchAPI'
+    'api/v/1/contact' : 'App\Web\API\ContactAPI'
+    'api/v/1/member/$Action' : 'App\Web\API\MemberAPI'
+    'api/v/1/subscribe' : 'App\Web\API\SubscriptionAPI'
+    'token-login': 'App\Web\Layout\RecoveryController'
+    'password-recovery' : 'App\Web\Controller\PasswordRecoveryController'

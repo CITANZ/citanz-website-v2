@@ -1,0 +1,23 @@
+---
+Name: restful_api
+---
+Leochenftw\Restful\RestfulController:
+  https_only: true
+
+---
+Only:
+  environment: 'dev'
+---
+Leochenftw\Restful\RestfulController:
+  CORSOrigin: 'https://localhost:8080'
+  CORSOrigins:
+    - 'https://localhost:8081'
+    - 'https://localhost:8082'
+    - 'https://localhost:8083'
+    - 'https://localhost:8084'
+    - 'https://localhost:8085'
+    - 'https://localhost:8086'
+  CORSMethods: 'GET, PUT, POST, DELETE, OPTIONS'
+  CORSMaxAge: '1000'
+  CORSAllowHeaders: 'Content-Type, Authorization, X-Requested-With, X-CSRF-TOKEN'
+  CORSAllowCredentials: true

@@ -1,0 +1,46 @@
+---
+Name: ss-site-logging
+---
+SilverStripe\Core\Injector\Injector:
+  Monolog:
+    class: Monolog\Logger
+    constructor:
+      0: App
+      1:
+        - "%$StreamHandler"
+  StreamHandler:
+    class: Monolog\Handler\StreamHandler
+    constructor:
+      0: "../../error.log"
+  LoggerBridge:
+    class: Camspiers\LoggerBridge\LoggerBridge
+    constructor:
+      0: "%$Monolog"
+    properties:
+      ErrorReporter: '%$LoggerBridgeDebugErrorReporter'
+  Psr\Log\LoggerInterface:
+    calls:
+      LogFileHandler: [ pushHandler, [ '%$LogFileHandler' ] ]
+  LogFileHandler:
+    class: Monolog\Handler\StreamHandler
+    constructor:
+      - "../silverstripe.log"
+      - "info"
+---
+Only:
+  environment: 'live'
+---
+SilverStripe\Core\Injector\Injector:
+  Psr\Log\LoggerInterface:
+    calls:
+      MailHandler: [ pushHandler, [ '%$MailHandler' ] ]
+  MailHandler:
+    class: Monolog\Handler\NativeMailerHandler
+    constructor:
+      - leochenftw@gmail.com
+      - SilverStripe Error Alert
+      - leochenftw@gmail.com
+      - error
+    properties:
+      ContentType: text/html
+      Formatter: '%$SilverStripe\Logging\DetailedErrorFormatter'
