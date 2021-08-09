@@ -19,6 +19,7 @@ use Cita\ImageCropper\Fields\CroppableImageField;
 use Leochenftw\Grid;
 use Leochenftw\Util;
 use Leochenftw\Util\CacheHandler;
+use SilverStripe\Control\Director;
 
 /**
  * Description
@@ -97,8 +98,10 @@ class HomePage extends Page
             return $mini_data;
         }
 
-        if ($data = CacheHandler::read('page.' . $this->ID, 'PageData')) {
-            return $data;
+        if (Director::isLive()) {
+            if ($data = CacheHandler::read('page.' . $this->ID, 'PageData')) {
+                return $data;
+            }
         }
 
         $data                   =   parent::getData();

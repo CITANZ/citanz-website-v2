@@ -77,6 +77,7 @@ class SiteConfigExtension extends DataExtension
     public function getData()
     {
         return [
+            'logo'          =>  $this->owner->Logo()->Data,
             'title'         =>  $this->owner->Title,
             'tagline'       =>  $this->owner->Tagline,
             'notification'  =>  $this->owner->ShowNotification ?

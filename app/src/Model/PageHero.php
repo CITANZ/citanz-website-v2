@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Web\Model;
+use SilverStripe\Dev\Debug;
 use SilverStripe\ORM\DataObject;
 use Cita\ImageCropper\Model\CitaCroppableImage;
 use Cita\ImageCropper\Fields\CroppableImageField;
@@ -49,15 +50,15 @@ class PageHero extends DataObject
         $list   =   [];
         if ($this->HeroType == 'Single') {
             if ($this->WideHero()->exists()) {
-                $list[] =   $this->WideHero()->getCropped()->getData('ScaleWidth', [420, 768, 1320]);
+                $list[] =   $this->WideHero()->getData('ScaleWidth', [420, 768, 1320]);
             }
         } else {
             if ($this->WideHero()->exists()) {
-                $list[] =   $this->WideHero()->getCropped()->getData('ScaleWidth', [181, 380, 690]);
+                $list[] =   $this->WideHero()->getData('ScaleWidth', [181, 380, 690]);
             }
 
             if ($this->SquareHero()->exists()) {
-                $list[] =   $this->SquareHero()->getCropped()->getData('ScaleWidth', [122, 476]);
+                $list[] =   $this->SquareHero()->getData('ScaleWidth', [122, 476]);
             }
         }
 

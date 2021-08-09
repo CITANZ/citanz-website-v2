@@ -77,6 +77,7 @@ class Page extends SiteTree implements Flushable
             'hero' => $this->PageHero()->exists() ? $this->PageHero()->Data : null,
             'pagetype' => ClassInfo::shortName($this->ClassName),
             'ancestors' => $this->get_ancestors($this),
+            'excerpt' => $this->Excerpt,
         ];
 
         if (!empty($siteconfig->Data)) {
@@ -121,7 +122,7 @@ class Page extends SiteTree implements Flushable
             $link = $item->Link();
 
             $list[] = [
-                'label' => $item->Title,
+                'label' => $item->MenuTitle,
                 'url' => $link,
                 'active' => $item->isSection() || $item->isCurrent(),
                 'sub' => $this->getMenuItems($item->Children()),
