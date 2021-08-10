@@ -57,7 +57,7 @@ class Company extends DataObject
             'title'         =>  $this->Title,
             'classname'     =>  $slugify->slugify($this->Title),
             'logo'          =>  $this->Logo()->exists() ?
-                                $this->Logo()->getAbsoluteURL() : null,
+                                $this->Logo()->ScaleHeight(48)->getAbsoluteURL() : null,
             'mini_logo'     =>  $this->MiniLogo()->exists() ?
                                 $this->MiniLogo()->getAbsoluteURL() : null,
             'link'          =>  $this->Link()->exists() ?

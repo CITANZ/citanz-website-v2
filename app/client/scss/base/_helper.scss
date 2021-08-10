@@ -1,0 +1,55 @@
+.position {
+  &-relative {
+    position: relative;
+  }
+
+  &-absolute {
+    position: absolute;
+  }
+
+  &-static {
+    position: static;
+  }
+
+  &-sticky {
+    position: sticky;
+  }
+}
+
+.mb {
+  &-25 {
+    margin-bottom: 100px !important;
+  }
+
+  &-sm {
+    &-25 {
+      @include media-breakpoint-up(sm) {
+        margin-bottom: 100px !important;
+      }
+    }
+  }
+
+  &-md {
+    &-25 {
+      @include media-breakpoint-up(md) {
+        margin-bottom: 100px !important;
+      }
+    }
+  }
+
+  &-lg {
+    &-25 {
+      @include media-breakpoint-up(lg) {
+        margin-bottom: 100px !important;
+      }
+    }
+  }
+
+  &-xl {
+    &-25 {
+      @include media-breakpoint-up(xl) {
+        margin-bottom: 100px !important;
+      }
+    }
+  }
+}
