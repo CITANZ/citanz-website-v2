@@ -60,6 +60,7 @@ class Company extends DataObject
                                 $this->Logo()->ScaleHeight(48)->getAbsoluteURL() : null,
             'mini_logo'     =>  $this->MiniLogo()->exists() ?
                                 $this->MiniLogo()->getAbsoluteURL() : null,
+            'LogoRatio'     =>  $this->Logo()->exists() ? $this->Logo()->ScaleHeight(48)->Width / $this->Logo()->ScaleHeight(48)->Height : null,
             'link'          =>  $this->Link()->exists() ?
                                 $this->Link()->getData() : null
         ];

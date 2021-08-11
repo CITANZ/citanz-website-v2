@@ -3,7 +3,10 @@
   <span class="iconed-block__icon d-block position-absolute">
     <v-img :src="blockData.icon" :alt="`${blockData.title} block's icon'`" />
   </span>
-  <h3>{{ blockData.title }}</h3>
+  <h3>
+    <span class="d-inline-block">{{ blockData.title }}</span>
+    <span class="d-inline-block badge">{{ blockData.badge }}</span>
+  </h3>
   <div class="typography" v-html="blockData.content"></div>
 </div>
 </template>

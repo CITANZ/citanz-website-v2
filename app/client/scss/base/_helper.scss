@@ -16,39 +16,161 @@
   }
 }
 
+.mt {
+  @for $i from 17 through 25 {
+    &-#{$i} {
+      margin-top: $i * 4px !important;
+    }
+
+    &-sm {
+      &-#{$i} {
+        @include media-breakpoint-up(sm) {
+          margin-top: $i * 4px !important;
+        }
+      }
+    }
+
+    &-md {
+      &-#{$i} {
+        @include media-breakpoint-up(md) {
+          margin-top: $i * 4px !important;
+        }
+      }
+    }
+
+    &-lg {
+      &-#{$i} {
+        @include media-breakpoint-up(lg) {
+          margin-top: $i * 4px !important;
+        }
+      }
+    }
+
+    &-xl {
+      &-#{$i} {
+        @include media-breakpoint-up(xl) {
+          margin-top: $i * 4px !important;
+        }
+      }
+    }
+  }
+}
+
+.mr {
+  @for $i from 17 through 25 {
+    &-#{$i} {
+      margin-right: $i * 4px !important;
+    }
+
+    &-sm {
+      &-#{$i} {
+        @include media-breakpoint-up(sm) {
+          margin-right: $i * 4px !important;
+        }
+      }
+    }
+
+    &-md {
+      &-#{$i} {
+        @include media-breakpoint-up(md) {
+          margin-right: $i * 4px !important;
+        }
+      }
+    }
+
+    &-lg {
+      &-#{$i} {
+        @include media-breakpoint-up(lg) {
+          margin-right: $i * 4px !important;
+        }
+      }
+    }
+
+    &-xl {
+      &-#{$i} {
+        @include media-breakpoint-up(xl) {
+          margin-right: $i * 4px !important;
+        }
+      }
+    }
+  }
+}
+
 .mb {
-  &-25 {
-    margin-bottom: 100px !important;
-  }
+  @for $i from 17 through 25 {
+    &-#{$i} {
+      margin-bottom: $i * 4px !important;
+    }
 
-  &-sm {
-    &-25 {
-      @include media-breakpoint-up(sm) {
-        margin-bottom: 100px !important;
+    &-sm {
+      &-#{$i} {
+        @include media-breakpoint-up(sm) {
+          margin-bottom: $i * 4px !important;
+        }
+      }
+    }
+
+    &-md {
+      &-#{$i} {
+        @include media-breakpoint-up(md) {
+          margin-bottom: $i * 4px !important;
+        }
+      }
+    }
+
+    &-lg {
+      &-#{$i} {
+        @include media-breakpoint-up(lg) {
+          margin-bottom: $i * 4px !important;
+        }
+      }
+    }
+
+    &-xl {
+      &-#{$i} {
+        @include media-breakpoint-up(xl) {
+          margin-bottom: $i * 4px !important;
+        }
       }
     }
   }
+}
 
-  &-md {
-    &-25 {
-      @include media-breakpoint-up(md) {
-        margin-bottom: 100px !important;
+.ml {
+  @for $i from 17 through 25 {
+    &-#{$i} {
+      margin-left: $i * 4px !important;
+    }
+
+    &-sm {
+      &-#{$i} {
+        @include media-breakpoint-up(sm) {
+          margin-left: $i * 4px !important;
+        }
       }
     }
-  }
 
-  &-lg {
-    &-25 {
-      @include media-breakpoint-up(lg) {
-        margin-bottom: 100px !important;
+    &-md {
+      &-#{$i} {
+        @include media-breakpoint-up(md) {
+          margin-left: $i * 4px !important;
+        }
       }
     }
-  }
 
-  &-xl {
-    &-25 {
-      @include media-breakpoint-up(xl) {
-        margin-bottom: 100px !important;
+    &-lg {
+      &-#{$i} {
+        @include media-breakpoint-up(lg) {
+          margin-left: $i * 4px !important;
+        }
+      }
+    }
+
+    &-xl {
+      &-#{$i} {
+        @include media-breakpoint-up(xl) {
+          margin-left: $i * 4px !important;
+        }
       }
     }
   }
