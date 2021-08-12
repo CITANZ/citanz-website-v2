@@ -16,6 +16,16 @@
   }
 }
 
+.text {
+  &-vertical {
+    &-center {
+      * {
+        vertical-align: middle;
+      }
+    }
+  }
+}
+
 .mt {
   @for $i from 17 through 25 {
     &-#{$i} {

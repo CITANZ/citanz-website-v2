@@ -199,6 +199,59 @@
       </v-row>
     </v-container>
   </section>
+  <section class="section sponsors">
+    <v-container>
+      <v-row class="text-center">
+        <v-col
+          cols="12"
+          sm="6"
+          offset-sm="3"
+        >
+            <h2>{{ sectionSponsors.title }}</h2>
+            <div class="typography" v-html="sectionSponsors.content"></div>
+            <div class="company-logos text-vertical-center">
+              <a
+                v-for="(sponsor, i) in sectionSponsors.sponsors"
+                :key="`sponsor-${i}`"
+                :href="sponsor.link.url"
+                target="_blank"
+                class="company-logo d-inline-block"
+              >
+                <img class="d-block" :src="sponsor.logoRaw" :height="sponsor.classname == 'catalyst-cloud' ? 33 : null" :alt="`${sponsor.title}'s logo'`" />
+              </a>
+            </div>
+        </v-col>
+      </v-row>
+    </v-container>
+  </section>
+  <section class="section upcoming">
+    <v-container>
+      <v-row>
+        <v-col
+          cols="12"
+          sm="6"
+          offset-sm="3"
+        >
+            <h2 class="text-center">{{ sectionUpcoming.title }}</h2>
+            <div class="typography text-center" v-html="sectionUpcoming.content"></div>
+        </v-col>
+      </v-row>
+      <v-row
+        class="upcomings text-center"
+      >
+        <v-col
+          v-for="(tile, i) in sectionUpcoming.tiles"
+          :key="`upcoming-tile-${i}`"
+        >
+          <v-img :src="tile.image.url" :aspect-ratio="tile.image.width / tile.image.height" />
+          <div class="upcoming-tile__content">
+            <h3>{{ tile.title }}</h3>
+            <div class="typography" v-html="tile.content"></div>
+          </div>
+        </v-col>
+      </v-row>
+    </v-container>
+  </section>
 </div>
 </template>
 
@@ -229,7 +282,13 @@ export default {
     },
     sectionTestimonial() {
       return this.site_data.testimonials
-    }
+    },
+    sectionSponsors() {
+      return this.site_data.sponsors
+    },
+    sectionUpcoming() {
+      return this.site_data.upcoming
+    },
   }
 }
 </script>
