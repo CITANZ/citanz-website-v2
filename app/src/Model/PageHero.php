@@ -50,15 +50,15 @@ class PageHero extends DataObject
         $list   =   [];
         if ($this->HeroType == 'Single') {
             if ($this->WideHero()->exists()) {
-                $list[] =   $this->WideHero()->getData('ScaleWidth', [420, 768, 1320]);
+                $list[] =   $this->WideHero()->getData('ScaleWidth', 1320);
             }
         } else {
             if ($this->WideHero()->exists()) {
-                $list[] =   $this->WideHero()->getData('ScaleWidth', [181, 380, 690]);
+                $list[] =   $this->WideHero()->getData('ScaleWidth', 690);
             }
 
             if ($this->SquareHero()->exists()) {
-                $list[] =   $this->SquareHero()->getData('ScaleWidth', [122, 476]);
+                $list[] =   $this->SquareHero()->getData('ScaleWidth', 476);
             }
         }
 

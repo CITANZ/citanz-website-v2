@@ -1,17 +1,6 @@
 <template>
 <div class="page-content">
-  <section class="section title-section">
-    <v-container>
-      <v-row>
-        <v-col cols="12" sm="6">
-          <h1>{{ site_data.title }}</h1>
-        </v-col>
-        <v-col cols="12" sm="6">
-          <div class="typography" v-html="site_data.excerpt"></div>
-        </v-col>
-      </v-row>
-    </v-container>
-  </section>
+  <section-title />
   <page-hero :hero="site_data.hero" />
   <section class="section about">
     <v-container>
@@ -51,11 +40,11 @@
           <v-row>
             <v-col cols="auto">
               <p class="h2">{{ sectionWhyWeHere.num_meetups }}</p>
-              <p class="subtitle">Meetups</p>
+              <p class="subheading">Meetups</p>
             </v-col>
             <v-col>
               <p class="h2">{{ sectionWhyWeHere.num_attendees }}</p>
-              <p class="subtitle">Attendees</p>
+              <p class="subheading">Attendees</p>
             </v-col>
           </v-row>
         </v-col>
@@ -256,13 +245,11 @@
 </template>
 
 <script>
-import PageHero from '../../blocks/PageHero'
 import IconedBlock from '../../blocks/IconedBlock'
 export default {
   name: "HomePage",
   components: {
     'iconed-block': IconedBlock,
-    'page-hero': PageHero,
   },
   computed: {
     sectionWhyWeHere() {

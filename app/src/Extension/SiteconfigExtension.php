@@ -106,43 +106,47 @@ class SiteConfigExtension extends DataExtension
 
     private function prep_social_medias()
     {
-        return [
+        $data = [
             'facebook'      =>  !empty($this->owner->ProfilesFacebookPage) ?
                                 [
-                                    'icon'  =>  'fab fa-facebook-f',
+                                    'icon'  =>  'facebook',
                                     'url'   =>  $this->owner->ProfilesFacebookPage
                                 ] : null,
             'twitter'       =>  !empty($this->owner->ProfilesTwitterPage) ?
                                 [
-                                    'icon'  =>  'fab fa-twitter',
+                                    'icon'  =>  'twitter',
                                     'url'   =>  $this->owner->ProfilesTwitterPage
                                 ] : null,
             'google'        =>  !empty($this->owner->ProfilesGooglePage) ?
                                 [
-                                    'icon'  =>  'fab fa-google-plus-g',
+                                    'icon'  =>  'google-plus',
                                     'url'   =>  $this->owner->ProfilesGooglePage
                                 ] : null,
             'linkedin'      =>  !empty($this->owner->ProfilesLinkedinPage) ?
                                 [
-                                    'icon'  =>  'fab fa-linkedin-in',
+                                    'icon'  =>  'linkedin',
                                     'url'   =>  $this->owner->ProfilesLinkedinPage
                                 ] : null,
             'pinterest'     =>  !empty($this->owner->ProfilesPinterestPage) ?
                                 [
-                                    'icon'  =>  'fab fa-pinterest-p',
+                                    'icon'  =>  'pinterest',
                                     'url'   =>  $this->owner->ProfilesPinterestPage
                                 ] : null,
             'youtube'       =>  !empty($this->owner->ProfilesYoutubePage) ?
                                 [
-                                    'icon'  =>  'fab fa-youtube',
+                                    'icon'  =>  'youtube',
                                     'url'   =>  $this->owner->ProfilesYoutubePage
                                 ] : null,
             'instagram'     =>  !empty($this->owner->ProfilesInstagramPage) ?
                                 [
-                                    'icon'  =>  'fab fa-instagram',
+                                    'icon'  =>  'instagram',
                                     'url'   =>  $this->owner->ProfilesInstagramPage
                                 ] : null
         ];
+
+        return array_filter($data, function($item) {
+            return !empty($item);
+        });
     }
 
     private function prep_footer_menu()
