@@ -11,8 +11,9 @@
   </v-container>
 </div>
 </template>
+
 <script>
 export default {
-  name: "Page",
+  name: "ShowcasePage",
 }
 </script>
