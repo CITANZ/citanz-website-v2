@@ -32,7 +32,6 @@ class WorkingGroupMember extends DataObject
         'Title'     =>  'Varchar(128)',
         'Excerpt'   =>  'Text',
         'Content'   =>  'HTMLText',
-        'JobTitle'  =>  'Varchar(128)',
         'Linkedin'  =>  'Varchar(1024)'
     ];
 
@@ -40,10 +39,9 @@ class WorkingGroupMember extends DataObject
     {
         return [
             'title'     =>  $this->Title,
-            'jobtitle'  =>  $this->JobTitle,
             'linkedin'  =>  $this->Linkedin,
             'portrait'  =>  $this->Portrait()->exists() ?
-                            $this->Portrait()->getCropped()->getData('FitMax', [366, 324, 282], [308, 272, 237]) :
+                            $this->Portrait()->getCropped()->getData('FitMax', 366, 308) :
                             null
         ];
     }
@@ -64,7 +62,6 @@ class WorkingGroupMember extends DataObject
      */
     private static $has_one = [
         'Portrait'  =>  CitaCroppableImage::class,
-        'Team'      =>  Team::class
     ];
 
     private static $cascade_deletes = ['Portrait'];
@@ -79,7 +76,6 @@ class WorkingGroupMember extends DataObject
 
         $fields->removeByName([
             'PortraitID',
-            'TeamID'
         ]);
 
         $fields->addFieldsToTab(
@@ -94,7 +90,6 @@ class WorkingGroupMember extends DataObject
             'Root.Main',
             [
                 TextField::create('Linkedin'),
-                $fields->fieldByName('Root.Main.JobTitle'),
                 $fields->fieldByName('Root.Main.Excerpt')
             ],
             'Content'

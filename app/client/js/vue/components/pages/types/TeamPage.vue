@@ -70,6 +70,12 @@
           <div class="typography" v-html="site_data.team.excerpt"></div>
         </v-col>
       </v-row>
+      <working-group
+        v-for="(team, i) in site_data.team.teams"
+        :key="`working-group-${i}`"
+        :groupIndex="i"
+        :groupData="team"
+      />
     </v-container>
   </section>
   <section class="section section-tiles">
@@ -108,7 +114,11 @@
 </template>
 
 <script>
+import WorkingGroup from '../../blocks/WorkingGroup'
 export default {
   name: 'team-page',
+  components: {
+    'working-group': WorkingGroup,
+  }
 }
 </script>
