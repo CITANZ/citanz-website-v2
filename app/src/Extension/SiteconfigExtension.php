@@ -68,16 +68,18 @@ class SiteConfigExtension extends DataExtension
      * @var array
      */
     private static $has_one = [
+        'FooterLogo'        =>  File::class,
         'QRCode'            =>  File::class,
         'SponsorCTA'        =>  Link::class,
         'DonateCTA'         =>  Link::class,
-        'NotificationLink'  =>  Link::class
+        'NotificationLink'  =>  Link::class,
     ];
 
     public function getData()
     {
         return [
             'logo'          =>  $this->owner->Logo()->Data,
+            'footer_logo'   =>  $this->owner->FooterLogo()->exists() ? $this->owner->FooterLogo()->Data : $this->owner->Logo()->Data,
             'title'         =>  $this->owner->Title,
             'tagline'       =>  $this->owner->Tagline,
             'notification'  =>  $this->owner->ShowNotification ?
@@ -169,7 +171,8 @@ class SiteConfigExtension extends DataExtension
      * @var array
      */
     private static $owns = [
-        'QRCode'
+        'QRCode',
+        'FooterLogo',
     ];
 
     /**
@@ -179,6 +182,12 @@ class SiteConfigExtension extends DataExtension
     public function updateCMSFields(FieldList $fields)
     {
         $owner = $this->owner;
+
+        $fields->insertBefore('Title', UploadField::create(
+            'FooterLogo',
+            'Logo - footer'
+        ));
+
         $fields->addFieldsToTab(
             'Root.Main',
             [

@@ -5,19 +5,19 @@
       <v-col cols="12" sm="6" lg="4">
         <p>
           <router-link to="/" class="d-inline-block">
-            <v-img width="155" :src="site_data.siteconfig.logo.url" />
+            <v-img width="155" :src="site_data.siteconfig.footer_logo.url" />
           </router-link>
         </p>
         <div class="typography" v-html="site_data.siteconfig.tagline"></div>
       </v-col>
       <v-col cols="12" sm="6" lg="2">
         <p>
-          <v-btn :to="site_data.siteconfig.cta.sponsor_us.rul">
+          <v-btn :href="site_data.siteconfig.cta.sponsor_us.url">
             {{ site_data.siteconfig.cta.sponsor_us.title }}
           </v-btn>
         </p>
         <p>
-          <v-btn :to="site_data.siteconfig.cta.donate.rul">
+          <v-btn :to="site_data.siteconfig.cta.donate.url">
             {{ site_data.siteconfig.cta.donate.title }}
           </v-btn>
         </p>

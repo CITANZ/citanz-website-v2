@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Web\Model;
+
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\OptionsetField;
