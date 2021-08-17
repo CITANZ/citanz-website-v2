@@ -6,6 +6,7 @@ use SilverStripe\ORM\DataObject;
 use App\Web\Layout\CertificatesPage;
 use Leochenftw\Extension\SortOrderExtension;
 use Leochenftw\Util;
+use SilverShop\HasOneField\HasOneButtonField;
 
 class Certificate extends DataObject implements \JsonSerializable
 {
@@ -13,8 +14,12 @@ class Certificate extends DataObject implements \JsonSerializable
 
     private static $db = [
         'Title' => 'Varchar(128)',
-        'Level' => 'Varchar(128)',
+        'Level' => 'Enum("Entry,Intermediate,Advanced")',
         'Content' => 'HTMLText',
+    ];
+
+    private static $defaults = [
+        'Level' => 'Intermediate',
     ];
 
     private static $has_one = [
@@ -29,7 +34,16 @@ class Certificate extends DataObject implements \JsonSerializable
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
-        $fields->removeByName(['PageID']);
+        $fields->removeByName(['PageID', 'CompanyID']);
+
+        if ($this->exists()) {
+            $fields->addFieldsToTab(
+                'Root.Main',
+                [
+                    HasOneButtonField::create($this, "Company")
+                ]
+            );
+        }
 
         return $fields;
     }
