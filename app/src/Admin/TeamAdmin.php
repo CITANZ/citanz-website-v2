@@ -3,7 +3,6 @@
 namespace App\Web\Admin;
 use SilverStripe\Admin\ModelAdmin;
 use App\Web\Model\Team;
-use App\Web\Member\BasicMember;
 use App\Web\Model\WorkingGroupMember;
 use Symbiote\GridFieldExtensions\GridFieldOrderableRows;
 use Leochenftw\Debugger;
@@ -22,7 +21,6 @@ class TeamAdmin extends ModelAdmin
     private static $managed_models = [
         Team::class,
         WorkingGroupMember::class,
-        BasicMember::class
     ];
 
     /**
