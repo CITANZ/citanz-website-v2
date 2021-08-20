@@ -1,28 +1,30 @@
-## Overview
+## OAuth Setup
+- Generate oauth encryption key and set `OAUTH_ENCRYPTION_KEY` in .env file
+    - `php -r 'echo base64_encode(random_bytes(32)), PHP_EOL;'`
+- Create new OAuth Client in Plan My Walk Backend (PMW > OAuth Clients)
+    - Add a Secret and keep a note of it
+- Add client ID and Client Secret to `../frontend/.env.local`
+    - Add `VUE_APP_OAUTH_CLIENT_ID="client id"` and `VUE_APP_OAUTH_CLIENT_SECRET="client secret"`
 
-Base project folder for a SilverStripe ([http://silverstripe.org](http://silverstripe.org)) installation. Required modules are installed via [http://github.com/silverstripe/recipe-cms](http://github.com/silverstripe/recipe-cms). For information on how to change the dependencies in a recipe, please have a look at [https://github.com/silverstripe/recipe-plugin](https://github.com/silverstripe/recipe-plugin). In addition, installer includes [theme/simple](https://github.com/silverstripe-themes/silverstripe-simple) as a default theme.
+### OAuth certificates
 
-## Installation ##
+There are pre-generated certificates that are used for the OAuth server the can be found in `app/certs` the are directories
+for every environment (dev, test, live).
 
-See [installation on different platforms](http://doc.silverstripe.org/framework/en/installation/),
-and [installation from source](http://doc.silverstripe.org/framework/en/installation/from-source).
+When setting up the project run the following commands to set the correct permissions on the certs.
 
-## Bugtracker ##
+    chown [user]:[webserver-user] app/certs/[env]/private.key
+    chown [user]:[webserver-user] app/certs/[env]/public.key
 
-Bugs are tracked on github.com ([framework issues](https://github.com/silverstripe/silverstripe-framework/issues),
-[cms issues](https://github.com/silverstripe/silverstripe-cms/issues)).
-Please read our [issue reporting guidelines](https://docs.silverstripe.org/en/4/contributing/issues_and_bugs/).
+    chmod 660 app/certs/[env]/private.key
+    chmod 660 app/certs/[env]/public.key
 
-## Development and Contribution ##
+If the permissions aren't set correctly you will get 500 errors from the auth api.
 
-If you would like to make changes to the SilverStripe core codebase, we have an extensive [guide to contributing code](http://doc.silverstripe.org/framework/en/misc/contributing/code).
+#### How to generate certificates
 
-## Links ##
+Run the following commands to generate certificates.
 
- * [Changelogs](http://doc.silverstripe.org/framework/en/changelogs/)
- * [Bugtracker: Framework](https://github.com/silverstripe/silverstripe-framework/issues)
- * [Bugtracker: CMS](https://github.com/silverstripe/silverstripe-cms/issues)
- * [Bugtracker: Installer](https://github.com/silverstripe/silverstripe-installer/issues)
- * [Forums](http://silverstripe.org/forums)
- * [Developer Mailinglist](https://groups.google.com/forum/#!forum/silverstripe-dev)
- * [License](./LICENSE)
+    openssl genrsa -out private.key 4096
+    openssl rsa -in private.key -pubout -out public.key
+
