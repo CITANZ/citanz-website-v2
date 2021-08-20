@@ -68,6 +68,7 @@ class SiteConfigExtension extends DataExtension
      * @var array
      */
     private static $has_one = [
+        'Logo' => File::class,
         'FooterLogo'        =>  File::class,
         'QRCode'            =>  File::class,
         'SponsorCTA'        =>  Link::class,

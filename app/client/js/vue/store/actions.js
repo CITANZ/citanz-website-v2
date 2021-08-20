@@ -19,6 +19,18 @@ export default {
     commit("SET_SITE_DATA", data)
   },
 
+  doSignup({ commit }, payload) {
+    return new Promise((resolve, reject) => {
+      axios.post(payload.path, payload.data, payload.headers).then(resolve).catch(reject)
+    })
+  },
+
+  getCSRFToken({ commit }, path) {
+    return new Promise((resolve, reject) => {
+      axios.get(path).then(resolve).catch(reject)
+    })
+  },
+
   getPageData({ commit }, path) {
     commit('SET_ERROR', null)
     commit('SET_SITE_DATA', null)

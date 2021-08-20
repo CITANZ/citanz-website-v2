@@ -1,10 +1,13 @@
 <?php
 
 namespace App\Web\Model;
+
 use SilverStripe\Dev\Debug;
 use SilverStripe\ORM\DataObject;
 use Cita\ImageCropper\Model\CitaCroppableImage;
 use Cita\ImageCropper\Fields\CroppableImageField;
+use App\Web\Layout\SignupPage;
+use Page;
 
 /**
  * Description
@@ -81,9 +84,14 @@ class PageHero extends DataObject
         $fields->fieldByName('Root.Main.HeroType')->setEmptyString('- select one to continue -');
 
         if ($this->HeroType == 'Single') {
+            $ratio = 16/7.85;
+            if ($this->Page()->exists() && $this->Page() instanceof SignupPage) {
+                $ratio = 16 / 4;
+            }
+
             $fields->addFieldToTab(
                 'Root.Main',
-                CroppableImageField::create('WideHero', 'Hero Image', $this)->setCropperRatio(16/7.85)
+                CroppableImageField::create('WideHero', 'Hero Image', $this)->setCropperRatio($ratio)
             );
         } elseif ($this->HeroType == 'Double') {
             $fields->addFieldsToTab(

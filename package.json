@@ -43,6 +43,7 @@
     "vue-style-loader": "^4.1.2",
     "vue-svg-loader": "^0.16.0",
     "vue-template-compiler": "^2.6.12",
+    "vuelidate": "^0.7.6",
     "vuetify": "^2.3.17",
     "vuex": "^3.5.1",
     "webpack": "^4.44.1",

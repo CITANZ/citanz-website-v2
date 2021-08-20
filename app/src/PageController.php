@@ -1,5 +1,6 @@
 <?php
 
+use SilverStripe\Dev\Debug;
 use Leochenftw\Restful\RestfulController;
 use Leochenftw\Util;
 use SilverStripe\CMS\Controllers\ContentController;
@@ -145,11 +146,13 @@ class PageController extends ContentController
             return json_encode($error_page->Data);
         }
 
-        if ($this->isAdmin() && $this->exists()) {
-            return json_encode(array_merge($this->Data, ['edit_url' => $this->CMSEditLink()]));
+        $data = $action === 'index' ? $this->Data : $this->$action();
+
+        if ($this->isAdmin() && $this->exists() && $action === 'index') {
+            return json_encode(array_merge($data, ['edit_url' => $this->CMSEditLink()]));
         }
 
-        return json_encode($this->Data);
+        return json_encode($data);
     }
 
     protected function init()
