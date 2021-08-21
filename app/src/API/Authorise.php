@@ -48,7 +48,10 @@ class Authorise extends RestfulController
         try {
             $psr7Response = $server->respondToAccessTokenRequest($psr7Request, $response);
 
-            return json_decode((new HttpResponseAdapter())->fromPsr7($psr7Response)->getBody());
+            $data = json_decode((new HttpResponseAdapter())->fromPsr7($psr7Response)->getBody());
+
+            $data->created = time();
+            return $data;
         } catch (OAuthServerException $e) {
             return $this->httpError(401, 'Incorrect email or password.');
         } catch (\Exception $e) {

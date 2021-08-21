@@ -66,7 +66,7 @@ export default {
       formData.append('grant_type', 'password')
       formData.append('client_id', process.env.VUE_APP_OAUTH_CLIENT_ID)
       formData.append('client_secret', process.env.VUE_APP_OAUTH_CLIENT_SECRET)
-      formData.append('scope', "")
+      formData.append('scope', '')
       formData.append('username', this.email)
       formData.append('password', this.password)
 

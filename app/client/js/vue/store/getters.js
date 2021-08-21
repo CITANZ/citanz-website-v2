@@ -13,5 +13,8 @@ export default {
   },
   showSigninForm(state) {
     return state.showSigninForm
+  },
+  access_token(state) {
+    return state.access_token
   }
 }
