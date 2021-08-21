@@ -7,7 +7,7 @@
 <script>
 import * as components from "./index.js"
 export default {
-    name: "Base",
-    components: { ...components },
+  name: "Base",
+  components: { ...components },
 }
 </script>

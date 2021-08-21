@@ -16,3 +16,4 @@ SilverStripe\Control\Director:
     # new api
     'api/v/1/authorise': 'App\Web\API\Authorise'
     'api/v1/member/$action': 'App\Web\API\Member'
+    'member/$action/$id': 'App\Web\Page\MemberCentreController'
