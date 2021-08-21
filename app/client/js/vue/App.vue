@@ -11,6 +11,7 @@
 import Header from './components/blocks/Header'
 import Mailchimp from './components/blocks/Mailchimp'
 import Footer from './components/blocks/Footer'
+
 export default {
   name: 'App',
   components: {

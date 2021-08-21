@@ -13,5 +13,14 @@ export default {
     if (site_data) {
       document.title = site_data.title
     }
+  },
+  TOGGLE_SIGNIN_FORM(state) {
+    state.showSigninForm = !state.showSigninForm
+  },
+  SET_ACCESS_TOKEN(state, token) {
+    state.access_token = token
+  },
+  SET_USER(state, user) {
+    state.user = user
   }
 }

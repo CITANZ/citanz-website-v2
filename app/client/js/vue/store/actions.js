@@ -25,6 +25,18 @@ export default {
     })
   },
 
+  toggleSigninForm({ commit }) {
+    commit('TOGGLE_SIGNIN_FORM')
+  },
+
+  setAccessToken({ commit }, token) {
+    commit("SET_ACCESS_TOKEN", token)
+  },
+
+  setUser({ commit }, user) {
+    commit('SET_USER', user)
+  },
+
   getCSRFToken({ commit }, path) {
     return new Promise((resolve, reject) => {
       axios.get(path).then(resolve).catch(reject)

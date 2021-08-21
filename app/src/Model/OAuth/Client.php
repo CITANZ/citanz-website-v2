@@ -45,7 +45,7 @@ class Client extends DataObject
             'Secret',
             'PersonalAccessClient',
             'PasswordClient',
-            'UserID',
+            'CustomerID',
             'Redirect',
             'SecretHashed',
         ]);

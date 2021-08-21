@@ -1,7 +1,7 @@
 ## OAuth Setup
 - Generate oauth encryption key and set `OAUTH_ENCRYPTION_KEY` in .env file
     - `php -r 'echo base64_encode(random_bytes(32)), PHP_EOL;'`
-- Create new OAuth Client in Plan My Walk Backend (PMW > OAuth Clients)
+- Create new OAuth Client in the CMS backend (/admin > OAuth Clients)
     - Add a Secret and keep a note of it
 - Add client ID and Client Secret to `../frontend/.env.local`
     - Add `VUE_APP_OAUTH_CLIENT_ID="client id"` and `VUE_APP_OAUTH_CLIENT_SECRET="client secret"`
@@ -27,4 +27,3 @@ Run the following commands to generate certificates.
 
     openssl genrsa -out private.key 4096
     openssl rsa -in private.key -pubout -out public.key
-

@@ -11,4 +11,7 @@ export default {
   site_data(state) {
     return state.site_data
   },
+  showSigninForm(state) {
+    return state.showSigninForm
+  }
 }

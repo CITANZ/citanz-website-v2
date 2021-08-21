@@ -27,12 +27,32 @@
         :ripple="false"
       >{{ navitem.label }}</v-btn>
     </v-toolbar-items>
-    <v-app-bar-nav-icon></v-app-bar-nav-icon>
+    <v-btn
+      icon
+      @click.prevent="toggleSigninForm"
+    >
+      <v-icon>mdi-account-circle</v-icon>
+    </v-btn>
+    <v-app-bar-nav-icon class="d-flex d-sm-none"></v-app-bar-nav-icon>
+    <signin-form v-if="showSigninForm" />
   </v-app-bar>
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+import { mapGetters } from 'vuex'
+import SigninForm from './forms/SigninForm'
+
 export default {
   name: 'site-header',
+  components: {
+    'signin-form': SigninForm,
+  },
+  computed: {
+    ...mapGetters(['showSigninForm']),
+  },
+  methods: {
+    ...mapActions(['toggleSigninForm']),
+  }
 }
 </script>

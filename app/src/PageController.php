@@ -164,23 +164,4 @@ class PageController extends ContentController
         Requirements::javascript('leochenftw/leoss4bk: client/dist/vendor.js');
         Requirements::javascript('leochenftw/leoss4bk: client/dist/app.js');
     }
-
-    protected function addCORSHeaders($response)
-    {
-        if (Director::isDev()) {
-            $config = Config::inst()->get(RestfulController::class);
-
-            $response->addHeader('Access-Control-Allow-Origin', $this->request->getHeader('origin'));
-            $response->addHeader('Access-Control-Allow-Methods', $config['CORSMethods']);
-            $response->addHeader('Access-Control-Max-Age', $config['CORSMaxAge']);
-            $response->addHeader('Access-Control-Allow-Headers', $config['CORSAllowHeaders']);
-            if ($config['CORSAllowCredentials']) {
-                $response->addHeader('Access-Control-Allow-Credentials', 'true');
-            }
-        }
-
-        $response->addHeader('Content-Type', 'application/json');
-
-        return $response;
-    }
 }

@@ -46,6 +46,7 @@
     "vuelidate": "^0.7.6",
     "vuetify": "^2.3.17",
     "vuex": "^3.5.1",
+    "vuex-persistedstate": "^4.0.0",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.0"
@@ -63,6 +64,7 @@
   ],
   "devDependencies": {
     "deepmerge": "^4.2.2",
+    "dotenv-webpack": "^7.0.3",
     "sass": "^1.29.0"
   }
 }

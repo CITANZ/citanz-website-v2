@@ -72,7 +72,7 @@
       </v-col>
     </v-row>
     <v-dialog
-      v-model="showError"
+      v-model="showModal"
       max-width="320"
     >
       <v-card>
@@ -81,8 +81,8 @@
           dark
           flat
           dense
-        >...</v-toolbar>
-        <v-card-text class="pt-4" v-html="errorMessages"></v-card-text>
+        >{{ modalColor == 'red' ? 'Error' : 'Message' }}</v-toolbar>
+        <v-card-text class="pt-4" v-html="postbackMessage"></v-card-text>
       </v-card>
     </v-dialog>
   </v-container>
@@ -114,14 +114,15 @@ export default {
       passVisible: false,
       agreed: false,
       busy: false,
-      showError: false,
-      errorMessages: null,
+      showModal: false,
+      postbackMessage: null,
+      modalColor: 'primary',
     }
   },
   watch: {
-    showError(nv) {
+    showModal(nv) {
       if (!nv) {
-        this.errorMessages = null
+        this.postbackMessage = null
       }
     }
   },
@@ -198,13 +199,18 @@ export default {
               },
             }).then(resp => {
               this.busy = false
+              this.showModal = true
+              this.modalColor = 'primary'
+              this.postbackMessage = resp.data.message
             }).catch(error => {
-              if (error.response && error.response.data) {
-                this.showError = true
-                this.errorMessages = error.response.data
-              }
-
               this.busy = false
+              this.showModal = true
+              this.modalColor = 'red'
+              if (error.response && error.response.data) {
+                this.postbackMessage = error.response.data
+              } else {
+                this.postbackMessage = 'Uknown error'
+              }
             })
           }
         })
