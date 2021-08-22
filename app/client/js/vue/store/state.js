@@ -4,6 +4,9 @@ export default {
   error: null,
   site_data: window.appInitialData,
   showSigninForm: false,
+  showModal: false,
+  postbackMessage: null,
+  modalColor: 'primary',
   access_token: null,
   user: null,
 }

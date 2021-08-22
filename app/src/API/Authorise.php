@@ -53,7 +53,7 @@ class Authorise extends RestfulController
             $data->created = time();
             return $data;
         } catch (OAuthServerException $e) {
-            return $this->httpError(401, 'Incorrect email or password.');
+            return $this->httpError(401, $e->getMessage());
         } catch (\Exception $e) {
             return $this->httpError(500, $e->getMessage());
         }

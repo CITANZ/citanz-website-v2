@@ -100,7 +100,7 @@ class SignupPageController extends PageController
         if (empty($this->password)) {
             $errors[] = 'Password is missing';
         } else {
-            if ((new Zxcvbn())->passwordStrength($password)['score'] < 3) {
+            if ((new Zxcvbn())->passwordStrength($this->password)['score'] < 2) {
               $errors[] = 'Password is not strong enough!';
             }
         }

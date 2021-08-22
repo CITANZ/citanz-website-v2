@@ -9,11 +9,11 @@ SilverStripe\Control\Director:
     'api/v/1/signout' : 'App\Web\API\SignoutAPI'
     'api/v/1/search' : 'App\Web\API\SearchAPI'
     'api/v/1/contact' : 'App\Web\API\ContactAPI'
-    'api/v/1/member/$Action' : 'App\Web\API\MemberAPI'
+    'api/v/1/session/$action' : 'App\Web\API\SessionAPI'
     'api/v/1/subscribe' : 'App\Web\API\SubscriptionAPI'
     'token-login': 'App\Web\Layout\RecoveryController'
     'password-recovery' : 'App\Web\Controller\PasswordRecoveryController'
     # new api
     'api/v/1/authorise': 'App\Web\API\Authorise'
-    'api/v1/member/$action': 'App\Web\API\Member'
+    'api/v/1/member/$action': 'App\Web\API\Member'
     'member/$action/$id': 'App\Web\Page\MemberCentreController'

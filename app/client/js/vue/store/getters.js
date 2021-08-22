@@ -16,5 +16,17 @@ export default {
   },
   access_token(state) {
     return state.access_token
-  }
+  },
+  showModal(state) {
+    return state.showModal
+  },
+  postbackMessage(state) {
+    return state.postbackMessage
+  },
+  modalColor(state) {
+    return state.modalColor
+  },
+  user(state) {
+    return state.user
+  },
 }

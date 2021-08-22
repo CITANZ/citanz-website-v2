@@ -4,6 +4,20 @@
   <router-view />
   <mail-chimp :mcData="site_data.siteconfig.mailchimp" />
   <site-footer />
+  <v-dialog
+    v-model="modalShown"
+    max-width="320"
+  >
+    <v-card>
+      <v-toolbar
+        :color="modalColor"
+        dark
+        flat
+        dense
+      >{{ modalColor == 'red' ? 'Error' : 'Message' }}</v-toolbar>
+      <v-card-text class="pt-4" v-html="postbackMessage"></v-card-text>
+    </v-card>
+  </v-dialog>
 </v-app>
 </template>
 
@@ -11,8 +25,7 @@
 import Header from './components/blocks/Header'
 import Mailchimp from './components/blocks/Mailchimp'
 import Footer from './components/blocks/Footer'
-import { mapActions } from 'vuex'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'App',
@@ -24,12 +37,23 @@ export default {
   data() {
     return {
       pendingTokenUpdater: null,
+      modalShown: false,
     }
   },
   watch: {
     $route(to) {
       this.$store.dispatch("getPageData", to.fullPath)
-    }
+    },
+    showModal(nv) {
+      if (nv) {
+        this.modalShown = true
+      }
+    },
+    modalShown(nv) {
+      if (!nv) {
+        this.$store.dispatch('setShowModal', false)
+      }
+    },
   },
   created() {
     console.log(this.site_data)
@@ -37,7 +61,12 @@ export default {
     window.addEventListener("focus", this.updateAccessToken)
   },
   computed: {
-    ...mapGetters(['access_token']),
+    ...mapGetters([
+        'access_token',
+        'showModal',
+        'postbackMessage',
+        'modalColor',
+    ]),
   },
   methods: {
     timerClearer() {
@@ -64,14 +93,12 @@ export default {
         formData.append('client_id', process.env.VUE_APP_OAUTH_CLIENT_ID)
         formData.append('client_secret', process.env.VUE_APP_OAUTH_CLIENT_SECRET)
 
-        axios.post(
-          'api/v1/auth/oauth',
-          formData
-        ).then(response => {
+        this.$store.dispatch('refreshToken', formData).then(response => {
           this.$store.dispatch('setAccessToken', response.data)
           this.pendingTokenUpdater = setTimeout(() => { this.updateAccessToken() }, 30 * 1000)
         }).catch(() => {
-          this.pendingTokenUpdater = setTimeout(() => { this.updateAccessToken() }, 30 * 1000)
+          this.$store.dispatch("setAccessToken", null)
+          this.$store.dispatch("setUser", null)
         })
       } else {
         console.log((this.access_token.created + this.access_token.expires_in - currentTimestamp) + ' second(s) remaining');

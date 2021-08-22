@@ -25,8 +25,29 @@ export default {
     })
   },
 
+  refreshToken({ commit, dispatch }, payload) {
+    return new Promise((resolve, reject) => {
+      axios.post(
+        'api/v/1/authorise',
+        payload
+      ).then(resolve).catch(reject)
+    })
+  },
+
   toggleSigninForm({ commit }) {
     commit('TOGGLE_SIGNIN_FORM')
+  },
+
+  setShowModal({ commit }, status) {
+    commit('SET_SHOW_MODAL', status)
+  },
+
+  setPostbackMessage({ commit }, message) {
+    commit('SET_POSTBACK_MESSAGE', message)
+  },
+
+  setModalColor({ commit }, color) {
+    commit('SET_MODAL_COLOR', color)
   },
 
   setAccessToken({ commit }, token) {

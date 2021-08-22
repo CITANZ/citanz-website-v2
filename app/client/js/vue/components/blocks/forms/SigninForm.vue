@@ -77,7 +77,7 @@ export default {
         const accessToken = response.data;
         this.$store.dispatch('setAccessToken', accessToken)
 
-        axios.get('api/v1/member', { headers: { Authorization: `Bearer ${accessToken.access_token}` } })
+        axios.get('api/v/1/member', { headers: { Authorization: `Bearer ${accessToken.access_token}` } })
           .then(response => {
             this.busy = false
             this.email = null

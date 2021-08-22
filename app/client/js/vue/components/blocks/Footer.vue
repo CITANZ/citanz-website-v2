@@ -12,12 +12,12 @@
       </v-col>
       <v-col cols="12" sm="6" lg="2">
         <p>
-          <v-btn :href="site_data.siteconfig.cta.sponsor_us.url">
+          <v-btn depressed :href="site_data.siteconfig.cta.sponsor_us.url">
             {{ site_data.siteconfig.cta.sponsor_us.title }}
           </v-btn>
         </p>
         <p>
-          <v-btn :to="site_data.siteconfig.cta.donate.url">
+          <v-btn depressed :to="site_data.siteconfig.cta.donate.url">
             {{ site_data.siteconfig.cta.donate.title }}
           </v-btn>
         </p>

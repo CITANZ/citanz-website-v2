@@ -22,5 +22,14 @@ export default {
   },
   SET_USER(state, user) {
     state.user = user
-  }
+  },
+  SET_SHOW_MODAL(state, status) {
+    state.showModal = status
+  },
+  SET_POSTBACK_MESSAGE(state, message) {
+    state.postbackMessage = message
+  },
+  SET_MODAL_COLOR(state, color) {
+    state.modalColor = color
+  },
 }

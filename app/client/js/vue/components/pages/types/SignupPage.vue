@@ -71,20 +71,7 @@
         </form>
       </v-col>
     </v-row>
-    <v-dialog
-      v-model="showModal"
-      max-width="320"
-    >
-      <v-card>
-        <v-toolbar
-          color="red"
-          dark
-          flat
-          dense
-        >{{ modalColor == 'red' ? 'Error' : 'Message' }}</v-toolbar>
-        <v-card-text class="pt-4" v-html="postbackMessage"></v-card-text>
-      </v-card>
-    </v-dialog>
+
   </v-container>
 </div>
 </template>
@@ -114,9 +101,6 @@ export default {
       passVisible: false,
       agreed: false,
       busy: false,
-      showModal: false,
-      postbackMessage: null,
-      modalColor: 'primary',
     }
   },
   watch: {
@@ -199,18 +183,17 @@ export default {
               },
             }).then(resp => {
               this.busy = false
-              this.showModal = true
-              this.modalColor = 'primary'
-              this.postbackMessage = resp.data.message
+              this.$store.dispatch('setShowModal', true)
+              this.$store.dispatch('setModalColor', 'primary')
+              this.$store.dispatch('setPostbackMessage', resp.data.message)
             }).catch(error => {
               this.busy = false
-              this.showModal = true
-              this.modalColor = 'red'
-              if (error.response && error.response.data) {
-                this.postbackMessage = error.response.data
-              } else {
-                this.postbackMessage = 'Uknown error'
-              }
+              this.$store.dispatch('setShowModal', true)
+              this.$store.dispatch('setModalColor', 'red')
+              this.$store.dispatch(
+                'setPostbackMessage',
+                error.response && error.response.data ? error.response.data : 'Uknown error'
+              )
             })
           }
         })

@@ -34,7 +34,7 @@
             ></v-text-field>
           </v-col>
           <v-col cols="12" sm="auto">
-            <v-btn type="submit" :loading="is_loading">Stay in the loop</v-btn>
+            <v-btn type="submit" :loading="is_loading" depressed>Stay in the loop</v-btn>
           </v-col>
         </v-row>
       </form>

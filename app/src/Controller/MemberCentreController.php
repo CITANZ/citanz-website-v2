@@ -12,6 +12,8 @@ use Cita\eCommerce\Model\Customer;
  */
 class MemberCentreController extends PageController
 {
+    protected $Title = 'Member centre';
+
     public function getData()
     {
         $data = Page::create()->Data;
@@ -88,8 +90,11 @@ class MemberCentreController extends PageController
 
     public function getDefaultData()
     {
+        $lastSent = $this->request->getSession()->get('lastVerificationSent') ?? time();
+        $elapsed = time() - $lastSent;
         return [
             'title' => 'Member centre',
+            'lastSent' => 60 - $elapsed,
         ];
     }
 }

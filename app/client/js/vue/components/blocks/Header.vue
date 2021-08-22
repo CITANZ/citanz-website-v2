@@ -28,8 +28,17 @@
       >{{ navitem.label }}</v-btn>
     </v-toolbar-items>
     <v-btn
+      v-if="!user"
+      class="btn-signin-form-toggler"
       icon
       @click.prevent="toggleSigninForm"
+    >
+      <v-icon>mdi-account-circle</v-icon>
+    </v-btn>
+    <v-btn
+      v-else
+      icon
+      to="/member/me"
     >
       <v-icon>mdi-account-circle</v-icon>
     </v-btn>
@@ -39,8 +48,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import SigninForm from './forms/SigninForm'
 
 export default {
@@ -48,11 +56,25 @@ export default {
   components: {
     'signin-form': SigninForm,
   },
+  watch: {
+    showSigninForm(nv) {
+      if (nv) {
+        window.removeEventListener('mousedown', this.mousedownHandler)
+        window.addEventListener('mousedown', this.mousedownHandler)
+      }
+    }
+  },
   computed: {
-    ...mapGetters(['showSigninForm']),
+    ...mapGetters(['showSigninForm', 'user']),
   },
   methods: {
     ...mapActions(['toggleSigninForm']),
+    mousedownHandler(e) {
+      if (!(e.target.closest('.form-signin') || e.target.closest('.btn-signin-form-toggler'))) {
+        window.removeEventListener('mousedown', this.mousedownHandler)
+        this.toggleSigninForm()
+      }
+    }
   }
 }
 </script>
