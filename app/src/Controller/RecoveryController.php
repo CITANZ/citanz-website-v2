@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Web\Layout;
+
 use PageController;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\Director;

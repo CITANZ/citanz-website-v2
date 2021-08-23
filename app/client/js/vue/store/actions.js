@@ -19,6 +19,12 @@ export default {
     commit("SET_SITE_DATA", data)
   },
 
+  doRecovery({ commit }, payload) {
+    return new Promise((resolve, reject) => {
+      axios.post(payload.path, payload.data, payload.headers).then(resolve).catch(reject)
+    })
+  },
+
   doSignup({ commit }, payload) {
     return new Promise((resolve, reject) => {
       axios.post(payload.path, payload.data, payload.headers).then(resolve).catch(reject)
@@ -34,8 +40,8 @@ export default {
     })
   },
 
-  toggleSigninForm({ commit }) {
-    commit('TOGGLE_SIGNIN_FORM')
+  toggleSigninForm({ commit }, status) {
+    commit('TOGGLE_SIGNIN_FORM', status)
   },
 
   setShowModal({ commit }, status) {

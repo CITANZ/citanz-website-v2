@@ -11,14 +11,24 @@
       required
     ></v-text-field>
     <v-text-field
+      v-if="!recoveryMode"
       v-model="password"
-      :append-icon="expose_password ? 'mdi-eye' : 'mdi-eye-off'"
-      :type="expose_password ? 'text' : 'password'"
+      :append-icon="exposePassword ? 'mdi-eye' : 'mdi-eye-off'"
+      :type="exposePassword ? 'text' : 'password'"
       label="Pasword"
       required
-      @click:append="expose_password = !expose_password"
+      @click:append="exposePassword = !exposePassword"
     ></v-text-field>
-    <v-spacer></v-spacer>
+    <v-row justify="space-between">
+      <v-col cols="auto">
+        <router-link to="/signup">Signup</router-link>
+      </v-col>
+      <v-col cols="auto">
+        <a href="#" @click.prevent="recoveryMode = !recoveryMode">
+          <template v-if="recoveryMode">Signin</template><template v-else>Forgot?</template>
+        </a>
+      </v-col>
+    </v-row>
     <v-row
       align="start"
     >
@@ -31,8 +41,9 @@
           depressed
           color="success"
           type="submit"
+          :loading="busy"
         >
-          Sign in
+          <template v-if="recoveryMode">Recover</template><template v-else>Sign in</template>
         </v-btn>
       </v-col>
     </v-row>
@@ -50,18 +61,55 @@ export default {
       email: null,
       password: null,
       error: null,
-      expose_password: false,
+      exposePassword: false,
+      recoveryMode: false,
     }
   },
   methods: {
+    doRecovery(data) {
+      this.$store.dispatch('getCSRFToken', '/signup/do-signup').then(resp => {
+        if (resp.data.csrf) {
+          this.$store.dispatch('doRecovery', {
+            path: '/api/v/1/member/passwordRecovery',
+            data: data,
+            headers: {
+              headers: {
+                'X-CSRF-TOKEN': resp.data.csrf,
+              }
+            },
+          }).then(resp => {
+            this.$store.dispatch('toggleSigninForm', false)
+            this.busy = false
+            this.$store.dispatch('setShowModal', true)
+            this.$store.dispatch('setModalColor', 'primary')
+            this.$store.dispatch('setPostbackMessage', resp.data.message)
+          }).catch(error => {
+            this.busy = false
+            this.$store.dispatch('setShowModal', true)
+            this.$store.dispatch('setModalColor', 'red')
+            this.$store.dispatch(
+              'setPostbackMessage',
+              error.response && error.response.data ? error.response.data : 'Uknown error'
+            )
+          })
+        }
+      })
+    },
     doSubmit() {
       if (this.busy) {
         return
       }
 
       this.busy = true
+      this.error = null
 
       const formData = new FormData()
+
+      if (this.recoveryMode) {
+        formData.append('email', this.email)
+        this.doRecovery(formData)
+        return
+      }
 
       formData.append('grant_type', 'password')
       formData.append('client_id', process.env.VUE_APP_OAUTH_CLIENT_ID)

@@ -72,7 +72,7 @@ export default {
     mousedownHandler(e) {
       if (!(e.target.closest('.form-signin') || e.target.closest('.btn-signin-form-toggler'))) {
         window.removeEventListener('mousedown', this.mousedownHandler)
-        this.toggleSigninForm()
+        this.toggleSigninForm(false)
       }
     }
   }

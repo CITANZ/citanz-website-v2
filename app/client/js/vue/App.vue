@@ -42,6 +42,7 @@ export default {
   },
   watch: {
     $route(to) {
+      this.$store.dispatch('toggleSigninForm', false)
       this.$store.dispatch("getPageData", to.fullPath)
     },
     showModal(nv) {

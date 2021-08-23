@@ -45,17 +45,23 @@ class Member extends RestfulController
 
     public function post($request)
     {
+        $action = $request->param('action');
+
+        if ($action === 'passwordRecovery') {
+            return $this->passwordRecovery($request);
+        }
+
         $this->user = $this->authenticate();
 
         if (!$this->user || $this->user instanceof HTTPResponse) {
-            return $this->httpError('Unauthorised', 401);
+            return $this->httpError(401, 'Unauthorised');
         }
 
-        if ($action = $request->param('action')) {
+        if ($action && $this->hasMethod($action)) {
             return $this->$action($request);
         }
 
-        return $this->user;
+        return $this->httpError(401, 'Unauthorised');
     }
 
     public function resendActiviationCode(&$request)
@@ -78,6 +84,27 @@ class Member extends RestfulController
 
         return [
             'message' => '<p>Your activation code has been sent to your email address. Make sure you also check your spambox.</p>',
+        ];
+    }
+
+    public function passwordRecovery(&$request)
+    {
+        $email = $request->postVar('email');
+
+        if (!$email) {
+            return $this->httpError(400, 'Missing email');
+        }
+
+        $member = Customer::get()->filter(['Email' => $email])->first();
+
+        if (!$member) {
+            return $this->httpError(404, 'No such account!');
+        }
+
+        $member->RequestPasswordReset();
+
+        return [
+            'message' => '<p>The password recovery link has been sent to your email address. Make sure you also check your spambox.</p>',
         ];
     }
 

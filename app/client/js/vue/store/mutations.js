@@ -14,8 +14,12 @@ export default {
       document.title = site_data.title
     }
   },
-  TOGGLE_SIGNIN_FORM(state) {
-    state.showSigninForm = !state.showSigninForm
+  TOGGLE_SIGNIN_FORM(state, status) {
+    if (status !== undefined) {
+      state.showSigninForm = status
+    } else {
+      state.showSigninForm = !state.showSigninForm
+    }
   },
   SET_ACCESS_TOKEN(state, token) {
     state.access_token = token

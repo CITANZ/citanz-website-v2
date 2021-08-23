@@ -2,7 +2,10 @@
   background: white;
   padding: 1rem;
   width: 100%;
-  .v-app-bar & {
+}
+
+.v-app-bar {
+  .form-signin {
     position: absolute;
     bottom: 0;
     right: 1rem;

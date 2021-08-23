@@ -14,6 +14,20 @@ class MemberCentreController extends PageController
 {
     protected $Title = 'Member centre';
 
+    public function index()
+    {
+        if ($this->request->param('action') == 'passwordRecovery') {
+            return $this->handlePasswordRecovery();
+        }
+
+        return $this->renderWith(['Page']);
+    }
+
+    public function handlePasswordRecovery()
+    {
+        
+    }
+
     public function getData()
     {
         $data = Page::create()->Data;
