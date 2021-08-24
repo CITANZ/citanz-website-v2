@@ -4,7 +4,7 @@
     <v-container>
       <v-row>
         <v-col cols="12" sm="4" md="3" tag="nav">
-          <v-list v-if="user">
+          <v-list v-if="user || isRecoveryMode">
             <v-list-item-group>
               <v-list-item
                 v-for="(item, i) in site_data.memberMenu"
@@ -19,6 +19,7 @@
                 </v-list-item-content>
               </v-list-item>
               <v-list-item
+                v-if="!isRecoveryMode"
                 @click.prevent="doSignout"
               >
                 <v-list-item-icon>
@@ -46,8 +47,11 @@
           </v-list>
         </v-col>
         <v-col cols="12" sm="8" md="9">
-          <signin-form v-if="!user" />
-          <form-activation v-if="user && !user.verified" :accessToken="access_token" @activated="onAccountActivated" />
+          <form-password v-if="isResetPassSection" />
+          <template v-else>
+            <signin-form v-if="!user" />
+            <form-activation v-if="user && !user.verified" :accessToken="access_token" @activated="onAccountActivated" />
+          </template>
         </v-col>
       </v-row>
     </v-container>
@@ -57,6 +61,7 @@
 <script>
 import SigninForm from '../../blocks/forms/SigninForm'
 import ActivationForm from '../../blocks/forms/ActivationForm'
+import PasswordForm from '../../blocks/forms/PasswordForm'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
@@ -64,12 +69,24 @@ export default {
   components: {
     'signin-form': SigninForm,
     'form-activation': ActivationForm,
+    'form-password': PasswordForm,
   },
   created() {
-    console.log(this.user)
+
+    console.log(this.$route.params)
   },
   computed: {
-    ...mapGetters(['access_token', 'user'])
+    ...mapGetters(['access_token', 'user']),
+    isRecoveryMode() {
+      if (!this.site_data) {
+        return false
+      }
+
+      return this.site_data.recoveryMode
+    },
+    isResetPassSection() {
+      return this.$route.params.action === 'reset-password'
+    },
   },
   methods: {
     ...mapActions(['setAccessToken', 'setUser']),

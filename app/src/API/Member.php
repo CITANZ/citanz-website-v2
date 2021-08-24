@@ -47,8 +47,8 @@ class Member extends RestfulController
     {
         $action = $request->param('action');
 
-        if ($action === 'passwordRecovery') {
-            return $this->passwordRecovery($request);
+        if ($action === 'passwordRecovery' || $action === 'setPassword') {
+            return $this->$action($request);
         }
 
         $this->user = $this->authenticate();
@@ -62,6 +62,11 @@ class Member extends RestfulController
         }
 
         return $this->httpError(401, 'Unauthorised');
+    }
+
+    public function setPassword(&$request)
+    {
+        return $request->getSession()->get('passwordReoveryToken');
     }
 
     public function resendActiviationCode(&$request)

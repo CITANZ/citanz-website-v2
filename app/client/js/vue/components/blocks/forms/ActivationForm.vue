@@ -36,7 +36,7 @@
       ></v-text-field>
     </v-col>
     <v-col cols="auto">
-      <v-btn :disabled="busy" :loading="busy" epressed type="submit">
+      <v-btn :disabled="busy" :loading="busy" depressed type="submit">
         Activate
       </v-btn>
     </v-col>
