@@ -17,6 +17,11 @@ class Member extends RestfulController
 {
     use OAuthTrait;
 
+    private const ANONYMOUS_METHODS = [
+      'passwordRecovery',
+      'setPassword',
+    ];
+
     private $user = null;
     /**
      * Defines methods that can be called directly.
@@ -47,7 +52,7 @@ class Member extends RestfulController
     {
         $action = $request->param('action');
 
-        if ($action === 'passwordRecovery' || $action === 'setPassword') {
+        if (in_array($action, static::ANONYMOUS_METHODS)) {
             return $this->$action($request);
         }
 
