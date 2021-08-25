@@ -47,7 +47,7 @@
           </v-list>
         </v-col>
         <v-col cols="12" sm="8" md="9">
-          <form-password v-if="isResetPassSection" />
+          <form-password v-if="isResetPassSection" @on-success="onPasswordReset" />
           <template v-else>
             <signin-form v-if="!user" />
             <form-activation v-if="user && !user.verified" :accessToken="access_token" @activated="onAccountActivated" />
@@ -72,7 +72,9 @@ export default {
     'form-password': PasswordForm,
   },
   created() {
-
+    if (this.site_data.recoveryMode && this.$route.params.action !== 'reset-password') {
+        this.$router.replace({ params: { action: 'reset-password'} })
+    }
     console.log(this.$route.params)
   },
   computed: {
@@ -99,6 +101,11 @@ export default {
     onAccountActivated(payload) {
       console.log(payload)
       this.setUser(payload);
+    },
+    onPasswordReset(payload) {
+      if (payload.redirect) {
+        this.$router.replace(payload.redirect)
+      }
     }
   }
 }

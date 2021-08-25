@@ -11,11 +11,14 @@
     <v-col>
       <v-text-field
         v-model="password"
+        :append-icon="passVisible ? 'mdi-eye' : 'mdi-eye-off'"
+        :type="passVisible ? 'text' : 'password'"
         :error-messages="passwordError"
-        label="New password"
+        label="Password"
         required
         @input="$v.password.$touch()"
         @blur="$v.password.$touch()"
+        @click:append="passVisible = !passVisible"
       ></v-text-field>
     </v-col>
     <v-col cols="auto">
@@ -43,6 +46,7 @@ export default {
   },
   data() {
     return {
+      passVisible: false,
       busy: false,
       password: null,
     }
@@ -55,7 +59,7 @@ export default {
       return errors
     },
   },
-  emits: [ 'activated' ],
+  emits: [ 'on-success' ],
   methods: {
     doActivate() {
       if (this.busy) {
@@ -74,7 +78,7 @@ export default {
         this.$store.dispatch('setModalColor', 'primary')
         this.$store.dispatch('setPostbackMessage', resp.data.message)
         this.busy = false
-        this.$emit('activated', resp.data.user)
+        this.$emit('on-success', resp.data)
       }).catch(error => {
         this.$store.dispatch('setShowModal', true)
         this.$store.dispatch('setModalColor', 'red')

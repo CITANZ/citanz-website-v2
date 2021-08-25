@@ -4,7 +4,7 @@ namespace App\Web\API;
 
 use SilverStripe\Dev\Debug;
 use SilverStripe\Core\Convert;
-
+use ZxcvbnPhp\Zxcvbn;
 use Cita\eCommerce\Model\Customer;
 use PMW\Util\PasswordStrength;
 use SilverStripe\Control\Controller;
@@ -12,6 +12,7 @@ use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\HTTPResponse;
 use Leochenftw\Restful\RestfulController;
 use App\Web\Traits\OAuthTrait;
+use Cita\eCommerce\Model\MemberVerificationCode;
 
 class Member extends RestfulController
 {
@@ -71,7 +72,30 @@ class Member extends RestfulController
 
     public function setPassword(&$request)
     {
-        return $request->getSession()->get('passwordReoveryToken');
+        $token = $request->getSession()->get('passwordReoveryToken');
+
+        if ($token) {
+            if ($code = MemberVerificationCode::get()->filter(['Code' => $token, 'Invalid' => false])->first()) {
+                if ($password = $request->requestVar('password')) {
+                    if ((new Zxcvbn())->passwordStrength($password)['score'] >= 2) {
+                        $code->Customer()->update([
+                            'Password' => Customer::hashPassword($password),
+                        ])->write();
+
+                        $request->getSession()->clear('passwordReoveryToken');
+
+                        return [
+                            'message' => 'Your password has been updated! Please sign in again.',
+                            'redirect' => '/member/me',
+                        ];
+                    }
+
+                    return $this->httpError(400, 'Password is not strong enough!');
+                }
+            }
+        }
+
+        return $this->httpError(403, 'Invalid token. Please re-apply password recovery!');
     }
 
     public function resendActiviationCode(&$request)
