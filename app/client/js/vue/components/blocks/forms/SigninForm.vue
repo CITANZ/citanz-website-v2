@@ -134,6 +134,13 @@ export default {
 
             const user = response.data
             this.$store.dispatch('setUser', user)
+
+            this.$nextTick().then(() => {
+              if (this.$route.name !== 'MemberCentre') {
+                this.$router.push('/member/me')
+              }
+            })
+
           }).catch(() => {
             this.busy = false
           })

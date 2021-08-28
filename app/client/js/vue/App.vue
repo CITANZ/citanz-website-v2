@@ -58,6 +58,7 @@ export default {
   },
   created() {
     console.log(this.site_data)
+    console.log(this.$route)
     this.updateAccessToken()
     window.addEventListener("focus", this.updateAccessToken)
   },
