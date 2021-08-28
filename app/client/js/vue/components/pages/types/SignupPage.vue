@@ -57,7 +57,7 @@
                   @change="$v.agreed.$touch()"
                   @blur="$v.agreed.$touch()"
                 >
-                  <span slot="label">I have read and accepted the <a href="#" target="_blank">T&amp;C</a></span>
+                  <span slot="label">I have read and accepted the <a href="/terms-and-conditions" target="_blank">T&amp;C</a></span>
                 </v-checkbox>
               </v-col>
               <v-col cols="auto">

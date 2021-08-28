@@ -85,7 +85,7 @@
       @input="$v.email.$touch()"
       @blur="$v.email.$touch()"
       persistent-hint
-      hint="BE NOTED: This also changes the email that you use to sign in!"
+      hint="BE NOTED: This also changes the email that you use for signin!"
     ></v-text-field>
     <v-text-field
       v-model="phone"
