@@ -4,3 +4,7 @@ Name: my-extension
 SilverStripe\SiteConfig\SiteConfig:
   extensions:
     - App\Web\Extension\SiteconfigExtension
+
+Cita\eCommerce\Model\Customer:
+  extensions:
+    - App\Web\Extension\CustomerExtension

@@ -52,6 +52,7 @@
             <signin-form v-if="!user" />
             <form-activation v-if="user && !user.verified" :accessToken="access_token" @activated="onAccountActivated" />
           </template>
+          <form-profile v-if="isMe" :accessToken="access_token" />
         </v-col>
       </v-row>
     </v-container>
@@ -62,6 +63,7 @@
 import SigninForm from '../../blocks/forms/SigninForm'
 import ActivationForm from '../../blocks/forms/ActivationForm'
 import PasswordForm from '../../blocks/forms/PasswordForm'
+import ProfileForm from '../../blocks/forms/ProfileForm'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
@@ -70,6 +72,7 @@ export default {
     'signin-form': SigninForm,
     'form-activation': ActivationForm,
     'form-password': PasswordForm,
+    'form-profile': ProfileForm,
   },
   created() {
     if (this.site_data.recoveryMode && this.$route.params.action !== 'reset-password') {
@@ -88,6 +91,9 @@ export default {
     },
     isResetPassSection() {
       return this.$route.params.action === 'reset-password'
+    },
+    isMe() {
+      return this.$route.params.action === 'me' && this.user
     },
   },
   methods: {

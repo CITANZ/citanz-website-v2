@@ -85,7 +85,7 @@ class PageHero extends DataObject
 
         if ($this->HeroType == 'Single') {
             $ratio = 16/7.85;
-            if ($this->Page()->exists() && $this->Page() instanceof SignupPage) {
+            if ($this->Page()->exists() && ($this->Page() instanceof SignupPage || $this->Page() instanceof Page)) {
                 $ratio = 16 / 4;
             }
 

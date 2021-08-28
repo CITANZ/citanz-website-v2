@@ -10,10 +10,15 @@ import router from "./vue/router"
 import common from "./vue/mixins/common"
 import TitleSection from './vue/components/blocks/TitleSection'
 import PageHero from './vue/components/blocks/PageHero'
+import VuetifyGoogleAutocomplete from 'veoci-vuetify-google-autocomplete'
 
 Vue.mixin(common)
 Vue.component('section-title', TitleSection)
 Vue.component('page-hero', PageHero)
+
+Vue.use(VuetifyGoogleAutocomplete, {
+  apiKey: 'AIzaSyB-8GlwgujFA8-rDO0TWu0grdi8wFnCoQA',
+})
 
 new Vue({
   el: "#app",

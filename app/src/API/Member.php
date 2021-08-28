@@ -70,6 +70,27 @@ class Member extends RestfulController
         return $this->httpError(401, 'Unauthorised');
     }
 
+    public function setProfile(&$request)
+    {
+        $data = $request->postVars();
+        $addressData = json_decode($data['Address'], true);
+        unset($data['Address']);
+
+        $this->user->update($data)->write();
+        $this->user->updateAddress($addressData);
+
+        return [
+            'message' => 'Your profile has been updated!',
+            'user' => $this->user,
+            'profile' => $this->user->FullProfile,
+        ];
+    }
+
+    public function getFullProfile(&$request)
+    {
+        return $this->user->FullProfile;
+    }
+
     public function setPassword(&$request)
     {
         $token = $request->getSession()->get('passwordReoveryToken');

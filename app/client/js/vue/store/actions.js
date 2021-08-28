@@ -19,6 +19,18 @@ export default {
     commit("SET_SITE_DATA", data)
   },
 
+  get({ commit }, payload) {
+    return new Promise((resolve, reject) => {
+      axios.get(payload.path, payload.headers).then(resolve).catch(reject)
+    })
+  },
+
+  post({ commit }, payload) {
+    return new Promise((resolve, reject) => {
+      axios.post(payload.path, payload.data, payload.headers).then(resolve).catch(reject)
+    })
+  },
+
   doRecovery({ commit }, payload) {
     return new Promise((resolve, reject) => {
       axios.post(payload.path, payload.data, payload.headers).then(resolve).catch(reject)
