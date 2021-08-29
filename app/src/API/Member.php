@@ -13,6 +13,10 @@ use SilverStripe\Control\HTTPResponse;
 use Leochenftw\Restful\RestfulController;
 use App\Web\Traits\OAuthTrait;
 use Cita\eCommerce\Model\MemberVerificationCode;
+use Cita\eCommerce\eCommerce;
+use Cita\eCommerce\Model\SubscriptionOrder;
+use SilverStripe\Core\Environment;
+use Cita\eCommerce\Service\PaymentService;
 
 class Member extends RestfulController
 {
@@ -68,6 +72,40 @@ class Member extends RestfulController
         }
 
         return $this->httpError(401, 'Unauthorised');
+    }
+
+    public function prepareMembership(&$request)
+    {
+        $vid = Convert::raw2sql($this->request->postVar('id'));
+
+        if (empty($vid)) {
+            return $this->httpError(400, 'Missing subscription vid');
+        }
+
+        $cart = eCommerce::get_subscription_cart(null, $this->user);
+
+        if (!$cart) {
+            $cart = SubscriptionOrder::create()->update([
+                'CustomerID' => $this->user->ID,
+            ]);
+
+            $cart->write();
+            $session = $this->request->getSession();
+            $session->set('subscription_cart_id', $cart->ID);
+        }
+
+        return array_merge(
+            $cart->AddToCart($vid),
+            [
+                'stripe_key' => json_decode(Environment::getEnv('Stripe'))->public,
+            ]
+        );
+    }
+
+    public function payMembership(&$request)
+    {
+        $order = eCommerce::get_subscription_cart(null, $this->user);
+        return PaymentService::initiate('Stripe', $order, $request->postVar('token'));
     }
 
     public function setProfile(&$request)

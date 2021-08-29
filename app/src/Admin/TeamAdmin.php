@@ -33,5 +33,5 @@ class TeamAdmin extends ModelAdmin
      * Menu title for Left and Main CMS
      * @var string
      */
-    private static $menu_title = 'Members & Teams';
+    private static $menu_title = 'Teams';
 }

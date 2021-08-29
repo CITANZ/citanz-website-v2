@@ -161,6 +161,7 @@ class PageController extends ContentController
 
         Requirements::css('leochenftw/leoss4bk: client/dist/vendor.css');
         Requirements::css('leochenftw/leoss4bk: client/dist/app.css');
+        Requirements::javascript('https://js.stripe.com/v3/');
         Requirements::javascript('leochenftw/leoss4bk: client/dist/vendor.js');
         Requirements::javascript('leochenftw/leoss4bk: client/dist/app.js');
     }

@@ -9,4 +9,5 @@ export default {
   modalColor: 'primary',
   access_token: null,
   user: null,
+  stripeKey: null,
 }

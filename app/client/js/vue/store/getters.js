@@ -29,4 +29,7 @@ export default {
   user(state) {
     return state.user
   },
+  stripeKey(state) {
+    return state.stripeKey
+  },
 }

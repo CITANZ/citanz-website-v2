@@ -7,6 +7,7 @@ use Page;
 use PageController;
 use Cita\eCommerce\Model\Customer;
 use Cita\eCommerce\Model\MemberVerificationCode;
+use Cita\eCommerce\Model\Subscription;
 
 /**
  * Description.
@@ -140,9 +141,12 @@ class MemberCentreController extends PageController
     {
         $lastSent = $this->request->getSession()->get('lastVerificationSent') ?? time();
         $elapsed = time() - $lastSent;
+        $subscriptions = Subscription::get()->Data;
+
         return [
             'title' => 'Member centre',
             'lastSent' => 60 - $elapsed,
+            'subscriptions' => $subscriptions,
         ];
     }
 }

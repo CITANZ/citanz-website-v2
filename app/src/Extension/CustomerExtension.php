@@ -38,6 +38,27 @@ class CustomerExtension extends DataExtension
         'Github' => 'Varchar',
     ];
 
+    public function getExtraCustomerData()
+    {
+        return [
+            'isPaidMember' => $this->owner->isPaidMember(),
+            'expiry' => date('d/m/Y', strtotime($this->owner->Expiry)),
+        ];
+    }
+
+    public function isPaidMember()
+    {
+        if ($this->owner->NeverExpire) {
+            return true;
+        }
+
+        if (empty($this->owner->Expiry)) {
+            return false;
+        }
+
+        return time() < strtotime($this->owner->Expiry . '+1 day');
+    }
+
     public function updateAddress($data)
     {
         if (!$this->owner->Addresses()->exists()) {

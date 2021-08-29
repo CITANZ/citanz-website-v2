@@ -43,6 +43,10 @@ export default {
     })
   },
 
+  setStripeKey({ commit }, key) {
+    commit('SET_STRIPE_KEY', key)
+  },
+
   refreshToken({ commit, dispatch }, payload) {
     return new Promise((resolve, reject) => {
       axios.post(

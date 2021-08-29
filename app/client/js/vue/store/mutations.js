@@ -36,4 +36,7 @@ export default {
   SET_MODAL_COLOR(state, color) {
     state.modalColor = color
   },
+  SET_STRIPE_KEY(state, key) {
+    state.stripeKey = key
+  },
 }

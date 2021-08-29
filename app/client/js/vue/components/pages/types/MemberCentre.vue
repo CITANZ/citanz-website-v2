@@ -52,7 +52,35 @@
             <signin-form v-if="!user" />
             <form-activation v-if="user && !user.verified" :accessToken="access_token" @activated="onAccountActivated" />
           </template>
-          <form-profile v-if="isMe" :accessToken="access_token" />
+          <template v-if="isMe">
+            <h2 class="form-title mb-4">Member Profile</h2>
+            <p v-if="user.isPaidMember">
+              Your membership ends on {{ user.expiry }}
+            </p>
+            <p v-else>
+              <template v-for="subscription in site_data.subscriptions">
+                <v-btn
+                  v-for="variant in subscription.variants"
+                  :key="`subscription-${variant.id}`"
+                  @click.prevent="doSubscription(variant.id)"
+                  depressed
+                >{{ variant.variant_title }} - {{ variant.price_label }}</v-btn>
+              </template>
+            </p>
+            <v-divider class="mt-3 mb-4"></v-divider>
+            <form-profile :accessToken="access_token" />
+            <v-dialog
+              v-model="dialog"
+              max-width="290"
+              :persistent="lockDialog"
+            >
+              <form-payment
+                ref="paymentForm"
+                @submitting="lockDialog = true"
+                @stripeTokenGranted="submitStripePayment"
+              />
+            </v-dialog>
+          </template>
         </v-col>
       </v-row>
     </v-container>
@@ -64,6 +92,7 @@ import SigninForm from '../../blocks/forms/SigninForm'
 import ActivationForm from '../../blocks/forms/ActivationForm'
 import PasswordForm from '../../blocks/forms/PasswordForm'
 import ProfileForm from '../../blocks/forms/ProfileForm'
+import PaymentForm from '../../blocks/forms/PaymentForm'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
@@ -73,6 +102,13 @@ export default {
     'form-activation': ActivationForm,
     'form-password': PasswordForm,
     'form-profile': ProfileForm,
+    'form-payment': PaymentForm,
+  },
+  data() {
+    return {
+      dialog: false,
+      lockDialog: false,
+    }
   },
   created() {
     if (this.site_data.recoveryMode && this.$route.params.action !== 'reset-password') {
@@ -97,7 +133,38 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['setAccessToken', 'setUser']),
+    ...mapActions(['setAccessToken', 'setUser', 'post', 'setStripeKey']),
+    submitStripePayment(token) {
+      this.dialog = this.lockDialog = false
+      const data = new FormData()
+      data.append('token', token)
+      this.post({
+        path: '/api/v/1/member/payMembership',
+        data: data,
+        headers: {
+          headers: { Authorization: `Bearer ${this.access_token.access_token}` },
+        },
+      }).then(resp => {
+        
+      })
+    },
+    doSubscription(id) {
+      const data = new FormData()
+      data.append('id', id)
+      this.post({
+        path: '/api/v/1/member/prepareMembership',
+        data: data,
+        headers: {
+          headers: { Authorization: `Bearer ${this.access_token.access_token}` },
+        },
+      }).then(resp => {
+        this.setStripeKey(resp.data.stripe_key)
+        this.$nextTick().then(() => {
+          this.$refs.paymentForm.setAmount(resp.data.amount)
+        })
+        this.dialog = true
+      })
+    },
     doSignout() {
       if (confirm('You sure?')) {
         this.setAccessToken(null)

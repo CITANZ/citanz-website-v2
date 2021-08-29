@@ -6,7 +6,6 @@
   :disabled="busy"
   autocomplete="off"
 >
-  <h2 class="form-title">Member Profile</h2>
   <p>Please complete your information as much as possible.</p>
   <v-progress-linear
     v-if="!userProfileLoaded"
