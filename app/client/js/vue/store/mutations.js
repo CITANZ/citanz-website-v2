@@ -39,4 +39,7 @@ export default {
   SET_STRIPE_KEY(state, key) {
     state.stripeKey = key
   },
+  SET_REFRESHING_TOKEN(state, status) {
+    state.refreshingToken = status
+  }
 }

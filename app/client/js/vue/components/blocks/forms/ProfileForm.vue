@@ -194,7 +194,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import { validationMixin } from 'vuelidate'
 import { required, email } from 'vuelidate/lib/validators'
 
@@ -217,6 +217,11 @@ export default {
       const [year, month, day] = nv.split('-')
       this.formattedDob = `${day}/${month}/${year}`
     },
+    refreshingToken(nv, ov) {
+      if (!ov && nv) {
+        this.getFullProfile()
+      }
+    }
   },
   data() {
     return {
@@ -249,6 +254,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters(['refreshingToken']),
     titlLevels() {
       return [
         'Entry',
@@ -374,6 +380,10 @@ export default {
       this.postcode = addressData.postal_code
     },
     getFullProfile() {
+      if (this.refreshingToken || !this.accessToken) {
+        return
+      }
+
       this.get(
         {
           path: '/api/v/1/member/getFullProfile',

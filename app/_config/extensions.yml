@@ -8,3 +8,7 @@ SilverStripe\SiteConfig\SiteConfig:
 Cita\eCommerce\Model\Customer:
   extensions:
     - App\Web\Extension\CustomerExtension
+
+Cita\eCommerce\Model\Order:
+  extensions:
+    - App\Web\Extension\OrderExtension

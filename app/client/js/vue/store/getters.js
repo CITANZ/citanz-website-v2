@@ -32,4 +32,7 @@ export default {
   stripeKey(state) {
     return state.stripeKey
   },
+  refreshingToken(state) {
+    return state.refreshingToken
+  },
 }

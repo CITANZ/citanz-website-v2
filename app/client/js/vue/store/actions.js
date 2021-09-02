@@ -47,6 +47,10 @@ export default {
     commit('SET_STRIPE_KEY', key)
   },
 
+  setRefreshingToken({ commit }, status) {
+    commit('SET_REFRESHING_TOKEN', status)
+  },
+
   refreshToken({ commit, dispatch }, payload) {
     return new Promise((resolve, reject) => {
       axios.post(

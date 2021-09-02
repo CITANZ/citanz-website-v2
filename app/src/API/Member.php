@@ -129,6 +129,63 @@ class Member extends RestfulController
         return $this->user->FullProfile;
     }
 
+    public function getSecuritySectionData(&$request)
+    {
+        $password = $this->user->Password;
+        return [
+            'qrString' => $this->user->MyQRCode,
+        ];
+    }
+
+    public function getPayments(&$request)
+    {
+        $page = $request->getVar('page');
+        $page = empty($page) || $page < 0 ? 0 : (((int) $page) - 1);
+        $pageSize = 10;
+
+        $list = $this->user->Orders()->filter([
+          'Status' => ['PaymentReceived', 'Shipped', 'Cancelled', 'Refunded', 'CardCreated', 'Completed', 'Free Order']
+        ]);
+
+        $count = $list->count();
+        $orders = $list->limit($pageSize, $page * $pageSize)->toArray();
+
+        return [
+            'list' => array_map(function($order) {
+                $paymentData = (object) $order->SuccessPayment->Data;
+                return [
+                    'id' => $order->ID,
+                    'ref' => $order->CustomerReference,
+                    'date' => $paymentData->created,
+                    'status' => $order->Status,
+                    'amount' => '$' . number_format($paymentData->amount, 2),
+                ];
+            }, $orders),
+            'pageSize' => $pageSize,
+            'pages' => ceil($count / $pageSize),
+        ];
+    }
+
+    public function updatePassword(&$request)
+    {
+        $password = $request->postVar('password');
+
+        if ((new Zxcvbn())->passwordStrength($password)['score'] >= 2) {
+            $this->user->update([
+                'Password' => Customer::hashPassword($password),
+            ])->write();
+
+            $password = $this->user->Password;
+
+            return [
+                'message' => 'Your password has been updated!',
+                'qrString' => $this->user->MyQRCode,
+            ];
+        }
+
+        return $this->httpError(400, 'Password is not strong enough!');
+    }
+
     public function setPassword(&$request)
     {
         $token = $request->getSession()->get('passwordReoveryToken');

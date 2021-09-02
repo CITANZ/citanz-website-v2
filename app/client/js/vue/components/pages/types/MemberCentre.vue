@@ -1,90 +1,94 @@
 <template>
-  <div class="page-content">
-    <section-title />
-    <v-container>
-      <v-row>
-        <v-col cols="12" sm="4" md="3" tag="nav">
-          <v-list v-if="user || isRecoveryMode">
-            <v-list-item-group>
-              <v-list-item
-                v-for="(item, i) in site_data.memberMenu"
-                :key="`member-menuitem-${i}`"
-                :to="item.url"
+  <v-main>
+    <div class="page-content">
+      <section-title :srOnly="true" />
+      <v-container>
+        <v-row>
+          <v-col cols="12" sm="4" md="3" tag="nav">
+            <v-list v-if="user || isRecoveryMode">
+              <v-list-item-group>
+                <v-list-item
+                  v-for="(item, i) in site_data.memberMenu"
+                  :key="`member-menuitem-${i}`"
+                  :to="item.url"
+                >
+                  <v-list-item-icon v-if="item.icon">
+                    <v-icon v-text="item.icon"></v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title v-text="item.title"></v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-list-item
+                  v-if="!isRecoveryMode"
+                  @click.prevent="doSignout"
+                >
+                  <v-list-item-icon>
+                    <v-icon v-text="'mdi-logout'"></v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title v-text="'Sign out'"></v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list-item-group>
+            </v-list>
+            <v-list v-else>
+              <v-list-item-group>
+                <v-list-item
+                  to="/member/me"
+                >
+                  <v-list-item-icon>
+                    <v-icon v-text="'mdi-account-circle'"></v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-content>
+                    <v-list-item-title v-text="'Sign in'"></v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list-item-group>
+            </v-list>
+          </v-col>
+          <v-col cols="12" sm="8" md="9">
+            <form-password v-if="isResetPassSection" @on-success="onPasswordReset" />
+            <template v-else>
+              <signin-form v-if="!user" />
+              <form-activation v-if="user && !user.verified" :accessToken="access_token" @activated="onAccountActivated" />
+            </template>
+            <template v-if="isMe">
+              <h2 class="form-title mb-4">Member Profile</h2>
+              <p v-if="user.isPaidMember">
+                Your membership ends on {{ user.expiry }}
+              </p>
+              <p v-else>
+                <template v-for="subscription in site_data.subscriptions">
+                  <v-btn
+                    v-for="variant in subscription.variants"
+                    :key="`subscription-${variant.id}`"
+                    @click.prevent="doSubscription(variant.id)"
+                    depressed
+                  >{{ variant.variant_title }} - {{ variant.price_label }}</v-btn>
+                </template>
+              </p>
+              <v-divider class="mt-3 mb-4"></v-divider>
+              <form-profile :accessToken="access_token" />
+              <v-dialog
+                v-model="dialog"
+                max-width="290"
+                :persistent="lockDialog"
               >
-                <v-list-item-icon v-if="item.icon">
-                  <v-icon v-text="item.icon"></v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title v-text="item.title"></v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-              <v-list-item
-                v-if="!isRecoveryMode"
-                @click.prevent="doSignout"
-              >
-                <v-list-item-icon>
-                  <v-icon v-text="'mdi-logout'"></v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title v-text="'Sign out'"></v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list-item-group>
-          </v-list>
-          <v-list v-else>
-            <v-list-item-group>
-              <v-list-item
-                to="/member/me"
-              >
-                <v-list-item-icon>
-                  <v-icon v-text="'mdi-account-circle'"></v-icon>
-                </v-list-item-icon>
-                <v-list-item-content>
-                  <v-list-item-title v-text="'Sign in'"></v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list-item-group>
-          </v-list>
-        </v-col>
-        <v-col cols="12" sm="8" md="9">
-          <form-password v-if="isResetPassSection" @on-success="onPasswordReset" />
-          <template v-else>
-            <signin-form v-if="!user" />
-            <form-activation v-if="user && !user.verified" :accessToken="access_token" @activated="onAccountActivated" />
-          </template>
-          <template v-if="isMe">
-            <h2 class="form-title mb-4">Member Profile</h2>
-            <p v-if="user.isPaidMember">
-              Your membership ends on {{ user.expiry }}
-            </p>
-            <p v-else>
-              <template v-for="subscription in site_data.subscriptions">
-                <v-btn
-                  v-for="variant in subscription.variants"
-                  :key="`subscription-${variant.id}`"
-                  @click.prevent="doSubscription(variant.id)"
-                  depressed
-                >{{ variant.variant_title }} - {{ variant.price_label }}</v-btn>
-              </template>
-            </p>
-            <v-divider class="mt-3 mb-4"></v-divider>
-            <form-profile :accessToken="access_token" />
-            <v-dialog
-              v-model="dialog"
-              max-width="290"
-              :persistent="lockDialog"
-            >
-              <form-payment
-                ref="paymentForm"
-                @submitting="lockDialog = true"
-                @stripeTokenGranted="submitStripePayment"
-              />
-            </v-dialog>
-          </template>
-        </v-col>
-      </v-row>
-    </v-container>
-  </div>
+                <form-payment
+                  ref="paymentForm"
+                  @submitting="lockDialog = true"
+                  @stripeTokenGranted="submitStripePayment"
+                />
+              </v-dialog>
+            </template>
+            <payments-section v-if="isPaymentsSection" />
+            <security-section v-if="isSecuritySection" />
+          </v-col>
+        </v-row>
+      </v-container>
+    </div>
+  </v-main>
 </template>
 
 <script>
@@ -94,6 +98,8 @@ import PasswordForm from '../../blocks/forms/PasswordForm'
 import ProfileForm from '../../blocks/forms/ProfileForm'
 import PaymentForm from '../../blocks/forms/PaymentForm'
 import { mapGetters, mapActions } from 'vuex'
+import Payments from './member-pages/Payments'
+import Security from './member-pages/Security'
 
 export default {
   name: 'MemberCentre',
@@ -103,6 +109,8 @@ export default {
     'form-password': PasswordForm,
     'form-profile': ProfileForm,
     'form-payment': PaymentForm,
+    'payments-section': Payments,
+    'security-section': Security,
   },
   data() {
     return {
@@ -131,6 +139,12 @@ export default {
     isMe() {
       return this.$route.params.action === 'me' && this.user
     },
+    isPaymentsSection() {
+      return this.$route.params.action === 'payments'
+    },
+    isSecuritySection() {
+      return this.$route.params.action === 'security'
+    },
   },
   methods: {
     ...mapActions(['setAccessToken', 'setUser', 'post', 'setStripeKey']),
@@ -145,7 +159,7 @@ export default {
           headers: { Authorization: `Bearer ${this.access_token.access_token}` },
         },
       }).then(resp => {
-        
+
       })
     },
     doSubscription(id) {
@@ -183,3 +197,11 @@ export default {
   }
 }
 </script>
+<style lang="scss" scoped>
+nav {
+  .v-list.v-sheet {
+    position: sticky;
+    top: 76px;
+  }
+}
+</style>

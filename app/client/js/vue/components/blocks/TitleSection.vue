@@ -1,5 +1,5 @@
 <template>
-  <section class="section title-section">
+  <section :class="['section title-section', {'d-sr-only': srOnly}]">
     <v-container>
       <v-row>
         <v-col cols="12" sm="6">
@@ -16,5 +16,8 @@
 <script>
 export default {
   name: 'section-title',
+  props: {
+    srOnly: Boolean,
+  }
 }
 </script>

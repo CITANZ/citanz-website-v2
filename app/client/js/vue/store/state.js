@@ -10,4 +10,5 @@ export default {
   access_token: null,
   user: null,
   stripeKey: null,
+  refreshingToken: true,
 }

@@ -68,9 +68,11 @@ export default {
         'showModal',
         'postbackMessage',
         'modalColor',
+        'refreshingToken',
     ]),
   },
   methods: {
+    ...mapActions(['setRefreshingToken']),
     timerClearer() {
       if (this.pendingTokenUpdater) {
         clearTimeout(this.pendingTokenUpdater)
@@ -87,6 +89,7 @@ export default {
       const needsRefresh = currentTimestamp >= this.access_token.created + this.access_token.expires_in - 60;
 
       if (needsRefresh) {
+        this.setRefreshingToken(true)
         this.timerClearer()
         const formData = new FormData()
 
@@ -98,11 +101,14 @@ export default {
         this.$store.dispatch('refreshToken', formData).then(response => {
           this.$store.dispatch('setAccessToken', response.data)
           this.pendingTokenUpdater = setTimeout(() => { this.updateAccessToken() }, 30 * 1000)
+          this.setRefreshingToken(false)
         }).catch(() => {
           this.$store.dispatch("setAccessToken", null)
           this.$store.dispatch("setUser", null)
+          this.setRefreshingToken(false)
         })
       } else {
+        this.setRefreshingToken(false)
         console.log((this.access_token.created + this.access_token.expires_in - currentTimestamp) + ' second(s) remaining');
       }
     },
