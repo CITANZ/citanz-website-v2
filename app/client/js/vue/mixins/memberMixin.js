@@ -6,6 +6,7 @@ export default {
       sectionData: false,
     }
   },
+  emits: ['data-loaded'],
   computed: {
     ...mapGetters(['refreshingToken','access_token']),
     accessToken() {

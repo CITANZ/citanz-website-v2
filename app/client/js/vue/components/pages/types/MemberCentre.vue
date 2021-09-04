@@ -55,32 +55,9 @@
             </template>
             <template v-if="isMe">
               <h2 class="form-title mb-4">Member Profile</h2>
-              <p v-if="user.isPaidMember">
-                Your membership ends on {{ user.expiry }}
-              </p>
-              <p v-else>
-                <template v-for="subscription in site_data.subscriptions">
-                  <v-btn
-                    v-for="variant in subscription.variants"
-                    :key="`subscription-${variant.id}`"
-                    @click.prevent="doSubscription(variant.id)"
-                    depressed
-                  >{{ variant.variant_title }} - {{ variant.price_label }}</v-btn>
-                </template>
-              </p>
+              <member-status :showStatus="showStatus" />
               <v-divider class="mt-3 mb-4"></v-divider>
-              <form-profile :accessToken="access_token" />
-              <v-dialog
-                v-model="dialog"
-                max-width="290"
-                :persistent="lockDialog"
-              >
-                <form-payment
-                  ref="paymentForm"
-                  @submitting="lockDialog = true"
-                  @stripeTokenGranted="submitStripePayment"
-                />
-              </v-dialog>
+              <form-profile :accessToken="access_token" @data-loaded="showStatus = true" />
             </template>
             <payments-section v-if="isPaymentsSection" />
             <security-section v-if="isSecuritySection" />
@@ -96,10 +73,10 @@ import SigninForm from '../../blocks/forms/SigninForm'
 import ActivationForm from '../../blocks/forms/ActivationForm'
 import PasswordForm from '../../blocks/forms/PasswordForm'
 import ProfileForm from '../../blocks/forms/ProfileForm'
-import PaymentForm from '../../blocks/forms/PaymentForm'
 import { mapGetters, mapActions } from 'vuex'
 import Payments from './member-pages/Payments'
 import Security from './member-pages/Security'
+import MemberStatus from './member-pages/MemberStatus'
 
 export default {
   name: 'MemberCentre',
@@ -108,14 +85,13 @@ export default {
     'form-activation': ActivationForm,
     'form-password': PasswordForm,
     'form-profile': ProfileForm,
-    'form-payment': PaymentForm,
     'payments-section': Payments,
     'security-section': Security,
+    'member-status': MemberStatus,
   },
   data() {
     return {
-      dialog: false,
-      lockDialog: false,
+      showStatus: false,
     }
   },
   created() {
@@ -147,38 +123,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['setAccessToken', 'setUser', 'post', 'setStripeKey']),
-    submitStripePayment(token) {
-      this.dialog = this.lockDialog = false
-      const data = new FormData()
-      data.append('token', token)
-      this.post({
-        path: '/api/v/1/member/payMembership',
-        data: data,
-        headers: {
-          headers: { Authorization: `Bearer ${this.access_token.access_token}` },
-        },
-      }).then(resp => {
-
-      })
-    },
-    doSubscription(id) {
-      const data = new FormData()
-      data.append('id', id)
-      this.post({
-        path: '/api/v/1/member/prepareMembership',
-        data: data,
-        headers: {
-          headers: { Authorization: `Bearer ${this.access_token.access_token}` },
-        },
-      }).then(resp => {
-        this.setStripeKey(resp.data.stripe_key)
-        this.$nextTick().then(() => {
-          this.$refs.paymentForm.setAmount(resp.data.amount)
-        })
-        this.dialog = true
-      })
-    },
+    ...mapActions(['setAccessToken', 'setUser']),
     doSignout() {
       if (confirm('You sure?')) {
         this.setAccessToken(null)

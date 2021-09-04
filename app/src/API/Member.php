@@ -126,7 +126,10 @@ class Member extends RestfulController
 
     public function getFullProfile(&$request)
     {
-        return $this->user->FullProfile;
+        return [
+            'full' => $this->user->FullProfile,
+            'basic' => $this->user,
+        ];
     }
 
     public function getSecuritySectionData(&$request)

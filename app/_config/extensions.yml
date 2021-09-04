@@ -1,11 +1,13 @@
 ---
 Name: my-extension
+After: ecommerce
 ---
 SilverStripe\SiteConfig\SiteConfig:
   extensions:
     - App\Web\Extension\SiteconfigExtension
 
 Cita\eCommerce\Model\Customer:
+  AllowMembershipRenewalBeforeExpiry: 30
   extensions:
     - App\Web\Extension\CustomerExtension
 

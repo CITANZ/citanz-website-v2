@@ -24,6 +24,7 @@ use Page;
 class CustomerExtension extends DataExtension
 {
     private static $db = [
+        'CitaID' => 'Varchar',
         'PendingEmail' => 'Varchar(256)',
         'Dob' => 'Date',
         'Gender' => 'Enum("Female,Male,Other")',
@@ -41,22 +42,12 @@ class CustomerExtension extends DataExtension
     public function getExtraCustomerData()
     {
         return [
-            'isPaidMember' => $this->owner->isPaidMember(),
+            'citaID' => $this->owner->CitaID,
+            'neverExpire' => $this->owner->NeverExpire ? true : false,
+            'canRenew' => $this->owner->canRenew(),
+            'isPaidMember' => $this->owner->isValidMembership(),
             'expiry' => date('d/m/Y', strtotime($this->owner->Expiry)),
         ];
-    }
-
-    public function isPaidMember()
-    {
-        if ($this->owner->NeverExpire) {
-            return true;
-        }
-
-        if (empty($this->owner->Expiry)) {
-            return false;
-        }
-
-        return time() < strtotime($this->owner->Expiry . '+1 day');
     }
 
     public function updateAddress($data)
@@ -71,22 +62,19 @@ class CustomerExtension extends DataExtension
 
     public function getFullProfile()
     {
-        return array_merge(
-            $this->owner->jsonSerialize(),
-            [
-                'dob' => $this->owner->Dob,
-                'gender' => $this->owner->Gender,
-                'address' => $this->owner->Addresses()->first(),
-                'isStudent' => $this->owner->isStudent ? true : false,
-                'organisation' => $this->owner->Organisation,
-                'degree' => $this->owner->Degree,
-                'major' => $this->owner->Major,
-                'titleLevel' => $this->owner->TitleLevel,
-                'jobCategory' => $this->owner->JobCategory,
-                'wechatID' => $this->owner->WechatID,
-                'linkedinLink' => $this->owner->LinkedInLink,
-                'github' => $this->owner->Github,
-            ]
-        );
+        return [
+            'dob' => $this->owner->Dob,
+            'gender' => $this->owner->Gender,
+            'address' => $this->owner->Addresses()->first(),
+            'isStudent' => $this->owner->isStudent ? true : false,
+            'organisation' => $this->owner->Organisation,
+            'degree' => $this->owner->Degree,
+            'major' => $this->owner->Major,
+            'titleLevel' => $this->owner->TitleLevel,
+            'jobCategory' => $this->owner->JobCategory,
+            'wechatID' => $this->owner->WechatID,
+            'linkedinLink' => $this->owner->LinkedInLink,
+            'github' => $this->owner->Github,
+        ];
     }
 }

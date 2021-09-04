@@ -6,7 +6,6 @@
   :disabled="busy"
   autocomplete="off"
 >
-  <p>Please complete your information as much as possible.</p>
   <v-progress-linear
     v-if="!userProfileLoaded"
     indeterminate
@@ -14,6 +13,7 @@
     height="6"
   ></v-progress-linear>
   <fieldset v-else :disabled="busy">
+    <p>Please complete your information as much as possible.</p>
     <h3 class="mb-4">Bio</h3>
     <v-text-field
       v-model="firstName"
@@ -209,6 +209,7 @@ export default {
     email: { required, email },
     phone: { required },
   },
+  emits: ['data-loaded'],
   props: {
     accessToken: Object,
   },
@@ -393,7 +394,9 @@ export default {
         }
       ).then(resp => {
         this.userProfileLoaded = true
-        this.originalData = resp.data
+        this.originalData = {...resp.data.full, ...resp.data.basic}
+        this.setUser(resp.data.basic)
+        this.$emit('data-loaded', resp.data.basic)
         this.reset()
       })
     },
