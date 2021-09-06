@@ -218,8 +218,8 @@ export default {
       const [year, month, day] = nv.split('-')
       this.formattedDob = `${day}/${month}/${year}`
     },
-    refreshingToken(nv, ov) {
-      if (!ov && nv) {
+    refreshingToken(nv) {
+      if (!nv) {
         this.getFullProfile()
       }
     }

@@ -78,6 +78,7 @@
 <script>
 import { validationMixin } from 'vuelidate'
 import { required, email } from 'vuelidate/lib/validators'
+import axios from 'axios'
 export default {
   name: 'SignupPage',
   mixins: [validationMixin],
@@ -182,22 +183,55 @@ export default {
                 }
               },
             }).then(resp => {
-              this.busy = false
               this.$store.dispatch('setShowModal', true)
               this.$store.dispatch('setModalColor', 'primary')
               this.$store.dispatch('setPostbackMessage', resp.data.message)
+              this.doSignin()
             }).catch(error => {
               this.busy = false
               this.$store.dispatch('setShowModal', true)
               this.$store.dispatch('setModalColor', 'red')
               this.$store.dispatch(
                 'setPostbackMessage',
-                error.response && error.response.data ? error.response.data : 'Uknown error'
+                error.response && error.response.data ? error.response.data : 'Unknown error'
               )
             })
           }
         })
       }
+    },
+    doSignin() {
+      const formData = new FormData()
+
+      formData.append('grant_type', 'password')
+      formData.append('client_id', process.env.VUE_APP_OAUTH_CLIENT_ID)
+      formData.append('client_secret', process.env.VUE_APP_OAUTH_CLIENT_SECRET)
+      formData.append('scope', '')
+      formData.append('username', this.email)
+      formData.append('password', this.password)
+      console.log(this.email)
+      console.log(this.password)
+      axios.post(
+        'api/v/1/authorise',
+        formData
+      ).then(response => {
+        const accessToken = response.data;
+        this.$store.dispatch('setAccessToken', accessToken)
+
+        axios.get('api/v/1/member', { headers: { Authorization: `Bearer ${accessToken.access_token}` } })
+          .then(response => {
+            this.busy = false
+            this.$store.dispatch('setUser', response.data)
+            this.$store.dispatch('setRefreshingToken', false)
+            console.log('does this part ever work???????')
+            this.$router.push('/member/me')
+          }).catch(() => {
+            this.busy = false
+          })
+      }).catch(() => {
+        this.busy = false
+        this.error = 'invalid email or password'
+      })
     }
   }
 }

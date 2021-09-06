@@ -53,6 +53,7 @@
 
 <script>
 import axios from "axios"
+import { mapActions } from 'vuex'
 export default {
   name: 'signin-form',
   data() {
@@ -66,6 +67,7 @@ export default {
     }
   },
   methods: {
+    ...mapActions(['setRefreshingToken']),
     doRecovery(data) {
       this.$store.dispatch('getCSRFToken', '/signup/do-signup').then(resp => {
         if (resp.data.csrf) {
@@ -134,6 +136,7 @@ export default {
 
             const user = response.data
             this.$store.dispatch('setUser', user)
+            this.setRefreshingToken(false)
 
             this.$nextTick().then(() => {
               if (this.$route.name !== 'MemberCentre') {

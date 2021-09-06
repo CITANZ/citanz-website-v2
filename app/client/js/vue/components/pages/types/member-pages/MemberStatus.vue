@@ -1,11 +1,15 @@
 <template>
   <div class="member-status" v-if="showStatus">
-    <p><strong>CITANZ MEMBERSHIP</strong>: {{ user.citaID }}</p>
+    <p>
+      <strong>CITANZ MEMBERSHIP</strong>
+      <template v-if="user.usedToBeAMember || user.isPaidMember">: {{ user.citaID }}</template>
+      <template v-else>- feel like to join?</template>
+    </p>
     <p class="text-vertical-center" v-if="user.isPaidMember">
       <template v-if="user.neverExpire">You are a perpetual member. No renewal is required.</template>
       <span v-else>Your membership ends on {{ user.expiry }}.</span>
     </p>
-    <p v-else>
+    <p v-else-if="user.usedToBeAMember">
       <span>Your membership has <strong>expired</strong> on <u>{{ user.expiry }}</u>.</span>
     </p>
     <p v-if="user.canRenew || !user.isPaidMember">

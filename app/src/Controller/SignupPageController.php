@@ -71,6 +71,7 @@ class SignupPageController extends PageController
 
         return [
             'message' => 'Your account has been created. Please check your email for the verification link.',
+            'redirect' => '/member/me',
         ];
     }
 

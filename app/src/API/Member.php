@@ -147,7 +147,7 @@ class Member extends RestfulController
         $pageSize = 10;
 
         $list = $this->user->Orders()->filter([
-          'Status' => ['PaymentReceived', 'Shipped', 'Cancelled', 'Refunded', 'CardCreated', 'Completed', 'Free Order']
+            'Status' => ['PaymentReceived', 'Shipped', 'Cancelled', 'Refunded', 'CardCreated', 'Completed', 'Free Order']
         ]);
 
         $count = $list->count();

@@ -39,6 +39,11 @@ class CustomerExtension extends DataExtension
         'Github' => 'Varchar',
     ];
 
+    public function usedToBeAMember()
+    {
+        return $this->owner->LastSubscription && !$this->owner->isValidMembership();
+    }
+
     public function getExtraCustomerData()
     {
         return [
@@ -47,6 +52,7 @@ class CustomerExtension extends DataExtension
             'canRenew' => $this->owner->canRenew(),
             'isPaidMember' => $this->owner->isValidMembership(),
             'expiry' => date('d/m/Y', strtotime($this->owner->Expiry)),
+            'usedToBeAMember' => $this->owner->usedToBeAMember(),
         ];
     }
 
