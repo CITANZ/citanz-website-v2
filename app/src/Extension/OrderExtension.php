@@ -12,6 +12,41 @@ use SilverStripe\ORM\DataExtension;
  */
 class OrderExtension extends DataExtension
 {
+    public function onBeforeWrite()
+    {
+        parent::onBeforeWrite();
+        if (!$this->owner->exists() && $this->owner->Customer()->exists()) {
+            if ($primaryAddress = $this->owner->Customer()->Addresses()->first()) {
+                $this->owner->update([
+                    'ShippingFirstname' => $primaryAddress->FirstName,
+                    'ShippingSurname' => $primaryAddress->Surname,
+                    'ShippingAddress' => $primaryAddress->Address,
+                    'ShippingOrganisation' => $primaryAddress->Company,
+                    'ShippingApartment' => $primaryAddress->Apartment,
+                    'ShippingSuburb' => $primaryAddress->Suburb,
+                    'ShippingTown' => $primaryAddress->City,
+                    'ShippingRegion' => $primaryAddress->Region,
+                    'ShippingCountry' => $primaryAddress->Country,
+                    'ShippingPostcode' => $primaryAddress->Postcode,
+                    'ShippingPhone' => $primaryAddress->Phone,
+                    'Email' => $this->owner->Customer()->Email,
+                    'SameBilling' => true,
+                    'BillingFirstname' => $primaryAddress->FirstName,
+                    'BillingSurname' => $primaryAddress->Surname,
+                    'BillingOrganisation' => $primaryAddress->Company,
+                    'BillingApartment' => $primaryAddress->Address,
+                    'BillingAddress' => $primaryAddress->Apartment,
+                    'BillingSuburb' => $primaryAddress->Suburb,
+                    'BillingTown' => $primaryAddress->City,
+                    'BillingRegion' => $primaryAddress->Region,
+                    'BillingCountry' => $primaryAddress->Country,
+                    'BillingPostcode' => $primaryAddress->Postcode,
+                    'BillingPhone' => $primaryAddress->Phone,
+                ]);
+            }
+        }
+    }
+
     public function doPaymentSuccessAction(&$order)
     {
         if ($order->ClassName === SubscriptionOrder::class) {
@@ -23,5 +58,14 @@ class OrderExtension extends DataExtension
 
             $order->update(['Status' => 'Completed'])->write();
         }
+    }
+
+    public function CustomDirectCartItemList()
+    {
+        $items = array_map(function($v) {
+            return "{$v->StoredTitle} x {$v->Quantity}";
+        }, $this->owner->Variants()->toArray());
+
+        return implode("\n", $items);
     }
 }

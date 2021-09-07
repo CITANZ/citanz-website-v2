@@ -51,9 +51,9 @@
             <form-password v-if="isResetPassSection" @on-success="onPasswordReset" />
             <template v-else>
               <signin-form v-if="!user" />
-              <form-activation v-if="user && !user.verified" :accessToken="access_token" @activated="onAccountActivated" />
+              <form-activation v-else-if="!user.verified" :accessToken="access_token" @activated="onAccountActivated" />
             </template>
-            <template v-if="user.verified && isMe">
+            <template v-if="user && user.verified && isMe">
               <h2 class="form-title mb-4">Member Profile</h2>
               <member-status :showStatus="showStatus" />
               <v-divider class="mt-3 mb-4"></v-divider>
