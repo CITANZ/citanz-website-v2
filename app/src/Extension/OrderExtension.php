@@ -4,6 +4,7 @@ namespace App\Web\Extension;
 
 use Cita\eCommerce\Model\SubscriptionOrder;
 use SilverStripe\ORM\DataExtension;
+use Cita\eCommerce\Model\CustomerGroup;
 
 /**
  * @file SiteConfigExtension
@@ -52,11 +53,24 @@ class OrderExtension extends DataExtension
         if ($order->ClassName === SubscriptionOrder::class) {
             if ($variant = $order->Variants()->first()) {
                 if ($order->Customer()->exists()) {
-                    $order->Customer()->extendExpiry($variant->Duration);
+                    $newExpiry = $order->Customer()->extendExpiry($variant->Duration);
                 }
             }
 
-            $order->update(['Status' => 'Completed'])->write();
+            $order->update([
+              'Status' => 'Completed',
+              'Comment' => !empty($newExpiry) ? 'Membership extended to ' . date('d/m/Y', is_int($newExpiry) ? $newExpiry : strtotime($newExpiry)) : null,
+            ])->write();
+
+            foreach ($order->Variants() as $variant) {
+                $order->Variants()->add($variant->ID, ['Delivered' => true]);
+            }
+
+            if ($order->Customer()->exists()) {
+                if ($paidMemberGroup = CustomerGroup::get()->filter(['Title' => 'Paid members'])->first()) {
+                    $paidMemberGroup->Customers()->add($order->CustomerID);
+                }
+            }
         }
     }
 

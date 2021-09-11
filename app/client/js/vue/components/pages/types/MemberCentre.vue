@@ -1,6 +1,6 @@
 <template>
   <v-main>
-    <div class="page-content">
+    <div class="page-content pb-8">
       <section-title :srOnly="true" />
       <v-container>
         <v-row>
@@ -55,10 +55,9 @@
             </template>
             <template v-if="user && user.verified && isMe">
               <h2 class="form-title mb-4">Member Profile</h2>
-              <member-status :showStatus="showStatus" />
-              <v-divider class="mt-3 mb-4"></v-divider>
-              <form-profile :accessToken="access_token" @data-loaded="showStatus = true" />
+              <form-profile :accessToken="access_token" />
             </template>
+            <membership-section v-if="isMembershipSection" />
             <payments-section v-if="isPaymentsSection" />
             <security-section v-if="isSecuritySection" />
           </v-col>
@@ -87,7 +86,7 @@ export default {
     'form-profile': ProfileForm,
     'payments-section': Payments,
     'security-section': Security,
-    'member-status': MemberStatus,
+    'membership-section': MemberStatus,
   },
   data() {
     return {
@@ -114,6 +113,9 @@ export default {
     },
     isMe() {
       return this.$route.params.action === 'me' && this.user
+    },
+    isMembershipSection() {
+      return this.$route.params.action === 'membership' && this.user
     },
     isPaymentsSection() {
       return this.$route.params.action === 'payments'

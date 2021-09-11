@@ -2,7 +2,7 @@
 <v-app v-if="site_data">
   <site-header />
   <router-view />
-  <mail-chimp :mcData="site_data.siteconfig.mailchimp" />
+  <mail-chimp v-if="$route.name !== 'MemberCentre'" :mcData="site_data.siteconfig.mailchimp" />
   <site-footer />
   <v-dialog
     v-model="modalShown"

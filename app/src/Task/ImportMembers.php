@@ -6,6 +6,7 @@ use SilverStripe\Dev\Debug;
 use SilverStripe\Dev\BuildTask;
 use Cita\eCommerce\Model\Customer;
 use SilverStripe\Dev\CSVParser;
+use Cita\eCommerce\Model\CustomerGroup;
 
 class ImportMembers extends BuildTask
 {
@@ -52,11 +53,13 @@ class ImportMembers extends BuildTask
 
             if (file_exists($csvFile)) {
                 $data = new CSVParser($csvFile);
+                $group = CustomerGroup::get()->first();
 
                 foreach ($data as $item) {
                     $member = Customer::get()->filter(['Email' => $item['Email']])->first();
                     $member = $member ?? Customer::create();
                     $member->update($item)->write();
+                    $group->Customers()->add($customer);
 
                     print $item['Email'] . ' has been imported/updated!' . PHP_EOL;
                 }

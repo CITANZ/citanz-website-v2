@@ -7,7 +7,6 @@ use Page;
 use PageController;
 use Cita\eCommerce\Model\Customer;
 use Cita\eCommerce\Model\MemberVerificationCode;
-use Cita\eCommerce\Model\Subscription;
 
 /**
  * Description.
@@ -68,6 +67,11 @@ class MemberCentreController extends PageController
         );
     }
 
+    public function getMembershipData()
+    {
+        return $this->DefaultData;
+    }
+
     public function getResetpasswordData()
     {
         return $this->DefaultData;
@@ -95,6 +99,11 @@ class MemberCentreController extends PageController
                 'title' => 'Security',
                 'url' => '/member/security',
                 'icon' => 'mdi-lock',
+            ],
+            [
+                'title' => 'Membership',
+                'url' => '/member/membership',
+                'icon' => 'mdi-account-heart',
             ],
             [
                 'title' => 'Payments',
@@ -141,12 +150,10 @@ class MemberCentreController extends PageController
     {
         $lastSent = $this->request->getSession()->get('lastVerificationSent') ?? time();
         $elapsed = time() - $lastSent;
-        $subscriptions = Subscription::get()->Data;
 
         return [
             'title' => 'Member centre',
             'lastSent' => 60 - $elapsed,
-            'subscriptions' => $subscriptions,
         ];
     }
 }

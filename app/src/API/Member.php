@@ -17,6 +17,7 @@ use Cita\eCommerce\eCommerce;
 use Cita\eCommerce\Model\SubscriptionOrder;
 use SilverStripe\Core\Environment;
 use Cita\eCommerce\Service\PaymentService;
+use Cita\eCommerce\Model\Subscription;
 
 class Member extends RestfulController
 {
@@ -72,6 +73,54 @@ class Member extends RestfulController
         }
 
         return $this->httpError(401, 'Unauthorised');
+    }
+
+    public function getMembershipData()
+    {
+        $subscriptions = Subscription::get()->MiniData;
+        $discount = null;
+
+        if ($group = $this->user->Groups()->first()) {
+            if ($group->Discount()->exists()) {
+                $discount = $group->Discount();
+            }
+        }
+
+        if ($discount) {
+            foreach ($subscriptions as &$subscription) {
+                $lowest = null;
+                $highest = 0;
+                foreach ($subscription['variants'] as &$variant) {
+                    $amount = $variant['price'];
+
+                    if ($discount->DiscountBy == 'ByPercentage') {
+                        $amount = $amount * (1 - $discount->DiscountRate * 0.01);
+                    } else {
+                        $amount = $amount - $discount->DiscountRate;
+                        $amount = $amount < 0 ? 0 : $amount;
+                    }
+
+                    $variant['variant_title'] = 'Renew membership';
+                    $variant['price'] = $amount;
+                    $variant['price_label'] = '$' . number_format($amount, 2);
+
+                    if (is_null($lowest)) {
+                        $lowest = $amount;
+                    } else {
+                        $lowest = $amount < $lowest ? $amount : $lowest;
+                    }
+
+                    $highest = $amount > $highest ? $amount : $highest;
+                }
+
+                $subscription['price_label'] = '$' . ($lowest == $highest ? number_format($lowest, 2) : (number_format($lowest, 2) . ' - ' . number_format($highest, 2)));
+            }
+        }
+
+        return [
+            'user' => $this->user,
+            'subscriptions' => $subscriptions,
+        ];
     }
 
     public function prepareMembership(&$request)

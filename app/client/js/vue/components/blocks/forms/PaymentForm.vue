@@ -1,8 +1,21 @@
 <template>
-  <v-card>
-    <form class="modal-content" method="post">
+  <v-card tag="form" class="form-payment" method="post">
+    <v-card-title
+      class="px-4 pb-4"
+    >
+      <v-img
+        v-if="site_data.siteconfig.footer_logo"
+        :aspect-ratio="144/40"
+        max-width="144"
+        max-height="40"
+        :src="site_data.siteconfig.footer_logo.url"
+      />
+    </v-card-title>
+    <v-card-text
+      class="px-4 pb-2"
+    >
       <stripe-element
-        class="field stripe-console"
+        class="stripe-console py-2 px-4"
         ref="stripe"
         type="card"
         :stripeOptions="{locale:'nz', hidePostalCode: true}"
@@ -10,8 +23,13 @@
         :stripe="stripeKey"
         @change="cdcompleted = $event.complete"
       />
+    </v-card-text>
+    <v-card-actions
+      class="px-4 pb-4 justify-space-between align-center"
+    >
+      <span class="ml-4 help">with <a href="https://stripe.com/nz" target="_blank">Stripe</a></span>
       <v-btn color="primary" depressed type="submit" :loading="is_submitting" :disabled="!cdcompleted" @click.prevent="payByCard">Pay {{ formattedAmount }}</v-btn>
-    </form>
+    </v-card-actions>
   </v-card>
 </template>
 
