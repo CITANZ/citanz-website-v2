@@ -35,4 +35,7 @@ export default {
   refreshingToken(state) {
     return state.refreshingToken
   },
+  skipFetchOnce(state) {
+    return state.skipFetchOnce
+  },
 }

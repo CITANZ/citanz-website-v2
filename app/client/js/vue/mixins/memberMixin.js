@@ -14,6 +14,16 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['get', 'post']),
+    ...mapActions(['get', 'post', 'setUser']),
+    syncMemberData() {
+      this
+        .get(
+          'api/v/1/member',
+          { headers: { Authorization: `Bearer ${accessToken.access_token}` }
+        })
+        .then(resp => {
+          this.setUser(resp.data)
+        }).catch(console.error)
+    }
   }
 }

@@ -46,6 +46,8 @@ class OrderExtension extends DataExtension
                 ]);
             }
         }
+
+        $this->owner->UpdateAmountWeight(true);
     }
 
     public function doPaymentSuccessAction(&$order)

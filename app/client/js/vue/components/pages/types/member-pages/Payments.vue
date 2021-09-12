@@ -32,18 +32,34 @@
       :length="sectionData.pages"
       :total-visible="5"
     ></v-pagination>
+    <v-dialog
+      v-model="dialog"
+      max-width="600"
+    >
+      <order-details
+        ref="orderDetails"
+        :orderID="order"
+      />
+    </v-dialog>
   </div>
 </template>
 
 <script>
 import memberMixin from '../../../../mixins/memberMixin'
+import OrderDetails from '../../../blocks/OrderDetails'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'payments-section',
   mixins: [ memberMixin ],
+  components: {
+    'order-details': OrderDetails,
+  },
   data() {
     return {
       page: this.$route.query.page ? parseInt(this.$route.query.page) : 1,
+      order: this.$route.query.order ? this.$route.query.order : null,
+      dialog: false,
     }
   },
   watch: {
@@ -54,7 +70,14 @@ export default {
       if (!ov && nv) {
         this.loadSectionData()
       }
-    }
+    },
+    dialog(nv) {
+      if (!nv) {
+        this.setSkipFetchOnce(true)
+        this.order = null
+        this.$router.push({query: {page: this.page}})
+      }
+    },
   },
   created() {
     this.loadSectionData()
@@ -76,6 +99,7 @@ export default {
     },
   },
   methods: {
+    ...mapActions(['get', 'setSkipFetchOnce']),
     loadSectionData() {
       if (this.refreshingToken || !this.accessToken) {
         return
@@ -91,10 +115,20 @@ export default {
       ).then(resp => {
         this.sectionDataLoaded = true
         this.sectionData = resp.data
+
+        if (this.order) {
+          this.dialog = true
+        }
       })
     },
     viewOrder(order) {
-      console.log(order)
+      if (this.order != order.id) {
+        this.setSkipFetchOnce(true)
+        this.order = order.id
+        this.$router.push({query: {page: this.page, order: order.id}})
+      }
+
+      this.dialog = true
     },
   },
 }

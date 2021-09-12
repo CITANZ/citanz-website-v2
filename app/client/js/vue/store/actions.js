@@ -84,6 +84,10 @@ export default {
     commit('SET_USER', user)
   },
 
+  setSkipFetchOnce({ commit }, status) {
+    commit('SET_SKIP_FETCH', status)
+  },
+
   getCSRFToken({ commit }, path) {
     return new Promise((resolve, reject) => {
       axios.get(path).then(resolve).catch(reject)

@@ -19,7 +19,12 @@
         ref="stripe"
         type="card"
         :stripeOptions="{locale:'nz', hidePostalCode: true}"
-        :elOptions="{style: { base: { padding: '0.5em', fontFamily: 'Roboto, Open Sans, Segoe UI, sans-serif', fontSize: '16px', fontSmoothing: 'antialiased' }, invalid: { iconColor: '#FFC7EE', color: '#FFC7EE', }} }"
+        :elOptions="{
+          style: {
+            base: { padding: '0.5em', fontFamily: 'Roboto, Open Sans, Segoe UI, sans-serif', fontSize: '16px', fontSmoothing: 'antialiased' },
+            invalid: { iconColor: '#FFC7EE', color: '#FFC7EE', }
+          }
+        }"
         :stripe="stripeKey"
         @change="cdcompleted = $event.complete"
       />
@@ -42,9 +47,7 @@ export default {
   components: { StripeElement },
   data() {
     return {
-      show_stripe_modal: false,
       cdcompleted: false,
-      client_secret: null,
       is_submitting: false,
       grand_total: 0,
     }
@@ -58,6 +61,9 @@ export default {
     }
   },
   methods: {
+    dismissSubmitting() {
+      this.is_submitting = false
+    },
     setAmount(amount) {
       this.grand_total = amount
     },
@@ -74,8 +80,6 @@ export default {
             location.reload()
             return false
           }
-          this.show_stripe_modal = false
-          this.is_submitting = false
           this.$emit('stripeTokenGranted', resp.token.id)
         }).catch(console.error)
     }

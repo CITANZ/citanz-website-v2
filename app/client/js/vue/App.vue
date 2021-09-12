@@ -43,7 +43,10 @@ export default {
   watch: {
     $route(to) {
       this.$store.dispatch('toggleSigninForm', false)
-      this.$store.dispatch("getPageData", to.fullPath)
+      if (!this.skipFetchOnce) {
+        this.$store.dispatch("getPageData", to.fullPath)
+      }
+      this.setSkipFetchOnce(false)
     },
     showModal(nv) {
       if (nv) {
@@ -58,7 +61,6 @@ export default {
   },
   created() {
     console.log(this.site_data)
-    console.log(this.$route)
     this.updateAccessToken()
     window.addEventListener("focus", this.updateAccessToken)
   },
@@ -69,10 +71,11 @@ export default {
         'postbackMessage',
         'modalColor',
         'refreshingToken',
+        'skipFetchOnce',
     ]),
   },
   methods: {
-    ...mapActions(['setRefreshingToken']),
+    ...mapActions(['setRefreshingToken', 'setSkipFetchOnce']),
     timerClearer() {
       if (this.pendingTokenUpdater) {
         clearTimeout(this.pendingTokenUpdater)

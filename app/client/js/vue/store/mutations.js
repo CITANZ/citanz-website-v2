@@ -41,5 +41,8 @@ export default {
   },
   SET_REFRESHING_TOKEN(state, status) {
     state.refreshingToken = status
-  }
+  },
+  SET_SKIP_FETCH(state, status) {
+    state.skipFetchOnce = status
+  },
 }

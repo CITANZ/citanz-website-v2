@@ -94,7 +94,6 @@ export default {
       })
     },
     submitStripePayment(token) {
-      this.dialog = this.lockDialog = false
       const data = new FormData()
       data.append('token', token)
       this.post({
@@ -104,7 +103,25 @@ export default {
           headers: { Authorization: `Bearer ${this.access_token.access_token}` },
         },
       }).then(resp => {
+        this.$refs.paymentForm.dismissSubmitting()
+        this.dialog = this.lockDialog = false
 
+        this.$store.dispatch('setShowModal', true)
+        this.$store.dispatch('setModalColor', 'primary')
+        this.$store.dispatch(
+          'setPostbackMessage',
+          '<p>Your payment has gone through. You can view your payment history at <br /><strong>Member centre</strong> > <strong>Payments</strong></p>'
+        )
+
+        this.sectionDataLoaded = false
+        this.loadSectionData()
+      }).catch(error => {
+        this.$refs.paymentForm.dismissSubmitting()
+        this.dialog = this.lockDialog = false
+        this.$store.dispatch('setShowModal', true)
+        this.$store.dispatch('setModalColor', 'red')
+        this.$store.dispatch('setPostbackMessage', error.response && error.response.data ? error.response.data.message : 'Uknown error')
+        this.busy = false
       })
     },
     doSubscription(id) {
@@ -119,12 +136,7 @@ export default {
       }).then(resp => {
         this.setStripeKey(resp.data.stripe_key)
         this.$nextTick().then(() => {
-          let amount = resp.data.amount
-          if (resp.data.discount) {
-            amount -= resp.data.discount.amount
-          }
-
-          amount = amount < 0 ? 0 : amount
+          const amount = resp.data.payable_total < 0 ? 0 : resp.data.payable_total
           if (amount > 0) {
             this.$refs.paymentForm.setAmount(amount)
           } else {
@@ -132,6 +144,10 @@ export default {
           }
         })
         this.dialog = true
+      }).catch(error => {
+        this.$store.dispatch('setShowModal', true)
+        this.$store.dispatch('setModalColor', 'red')
+        this.$store.dispatch('setPostbackMessage', error.response && error.response.data ? error.response.data.message : 'Uknown error')
       })
     },
   }

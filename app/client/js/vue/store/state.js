@@ -11,4 +11,5 @@ export default {
   user: null,
   stripeKey: null,
   refreshingToken: true,
+  skipFetchOnce: false,
 }
