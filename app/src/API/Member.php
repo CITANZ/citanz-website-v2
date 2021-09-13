@@ -100,7 +100,12 @@ class Member extends RestfulController
                         $amount = $amount < 0 ? 0 : $amount;
                     }
 
-                    $variant['variant_title'] = 'Renew membership';
+                    if ($this->user->isRealStudent()) {
+                        $variant['variant_title'] .= ' for Student';
+                    } else {
+                        $variant['variant_title'] = 'Renew membership';
+                    }
+
                     $variant['price'] = $amount;
                     $variant['price_label'] = '$' . number_format($amount, 2);
 

@@ -53,6 +53,7 @@ class CustomerExtension extends DataExtension
             'isPaidMember' => $this->owner->isValidMembership(),
             'expiry' => date('d/m/Y', strtotime($this->owner->Expiry)),
             'usedToBeAMember' => $this->owner->usedToBeAMember(),
+            'isRealStudent' => $this->owner->isRealStudent(),
         ];
     }
 
@@ -82,5 +83,10 @@ class CustomerExtension extends DataExtension
             'linkedinLink' => $this->owner->LinkedInLink,
             'github' => $this->owner->Github,
         ];
+    }
+
+    public function isRealStudent()
+    {
+        return $this->owner->Groups()->filter(['Title:nocase' => 'student members'])->exists();
     }
 }

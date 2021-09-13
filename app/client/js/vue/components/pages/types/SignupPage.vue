@@ -57,7 +57,7 @@
                   @change="$v.agreed.$touch()"
                   @blur="$v.agreed.$touch()"
                 >
-                  <span slot="label">I have read and accepted the <a href="/terms-and-conditions" target="_blank">T&amp;C</a></span>
+                  <span slot="label">I have read and accepted the <a @click.stop="popTnC" href="/terms-and-conditions" target="_blank">T&amp;C</a></span>
                 </v-checkbox>
               </v-col>
               <v-col cols="auto">
@@ -145,6 +145,9 @@ export default {
     },
   },
   methods: {
+    popTnC(e) {
+      window.open(e.target.href, '_blank')
+    },
     doSubmit() {
       this.$v.$touch()
       if (!this.$v.$invalid) {
