@@ -54,7 +54,7 @@ class CustomerExtension extends DataExtension
             'expiry' => date('d/m/Y', strtotime($this->owner->Expiry)),
             'usedToBeAMember' => $this->owner->usedToBeAMember(),
             'isRealStudent' => $this->owner->isRealStudent(),
-            'addressMissing' => $this->owner->Addresses()->first() ? empty($this->owner->Addresses()->Address) : true,
+            'addressMissing' => $this->owner->Addresses()->first() ? empty($this->owner->Addresses()->first()->Address) : true,
         ];
     }
 
