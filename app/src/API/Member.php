@@ -130,6 +130,11 @@ class Member extends RestfulController
 
     public function prepareMembership(&$request)
     {
+        if ($address = $request->postVar('address')) {
+            $addressData = json_decode($address, true);
+            $this->user->updateAddress($addressData);
+        }
+
         if (!$this->user->Addresses()->exists() || empty($this->user->Addresses()->first()->Address)) {
             return $this->httpError(
                 400,

@@ -374,11 +374,11 @@ export default {
       field.removeAttribute('placeholder')
     },
     getAddressData(addressData, placeResultData) {
-      this.suburb = placeResultData.vicinity
-      this.city = addressData.locality
-      this.region = addressData.administrative_area_level_1
-      this.country = addressData.country
-      this.postcode = addressData.postal_code
+      this.suburb = placeResultData ? placeResultData.vicinity : null
+      this.city = addressData ? addressData.locality : null
+      this.region = addressData ? addressData.administrative_area_level_1 : null
+      this.country = addressData ? addressData.country : null
+      this.postcode = addressData ? addressData.postal_code : null
     },
     getFullProfile() {
       if (this.refreshingToken || !this.accessToken) {

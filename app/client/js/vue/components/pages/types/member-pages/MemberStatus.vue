@@ -40,6 +40,17 @@
           @stripeTokenGranted="submitStripePayment"
         />
       </v-dialog>
+      <v-dialog
+        v-if="missingAddress"
+        v-model="showAddressForm"
+        max-width="360"
+      >
+        <form-just-address
+          ref="justAddressForm"
+          @submit="addressSubmitted"
+          @stripeTokenGranted="submitStripePayment"
+        />
+      </v-dialog>
     </template>
   </div>
 </template>
@@ -48,22 +59,41 @@
 import { mapGetters, mapActions } from 'vuex'
 import memberMixin from '../../../../mixins/memberMixin'
 import PaymentForm from '../../../blocks/forms/PaymentForm'
+import JustAddressForm from '../../../blocks/forms/JustAddressForm'
 export default {
   name: 'membership-section',
   components: {
     'form-payment': PaymentForm,
+    'form-just-address': JustAddressForm,
   },
   mixins: [ memberMixin ],
   data() {
     return {
       dialog: false,
       lockDialog: false,
+      showAddressForm: false,
+      addressObj: null,
+      pendingVariantID: null,
     }
   },
   computed: {
-    ...mapGetters(['user'])
+    ...mapGetters(['user']),
+    missingAddress() {
+      if (this.user) {
+        return this.user.addressMissing && !this.addressObj
+      }
+
+      return true
+    },
   },
   watch: {
+    showAddressForm(nv) {
+      if (nv) {
+        window.addEventListener('keydown', this.keydownHandler)
+      } else {
+        window.removeEventListener('keydown', this.keydownHandler)
+      }
+    },
     refreshingToken(nv, ov) {
       if (!ov && nv) {
         this.loadSectionData()
@@ -71,10 +101,24 @@ export default {
     },
   },
   created() {
+    window.removeEventListener('keydown', this.keydownHandler)
     this.loadSectionData()
   },
   methods: {
     ...mapActions(['post', 'setStripeKey', 'setUser']),
+    keydownHandler(e) {
+      if (e.key == 'Enter') {
+        e.preventDefault()
+        e.stopPropagation()
+        e.stopImmediatePropagation()
+        return false
+      }
+    },
+    addressSubmitted(address) {
+      this.addressObj = address
+      this.showAddressForm = false
+      this.doSubscription(this.pendingVariantID)
+    },
     loadSectionData() {
       if (this.refreshingToken || !this.accessToken) {
         return
@@ -125,8 +169,24 @@ export default {
       })
     },
     doSubscription(id) {
+      if (this.missingAddress) {
+        this.pendingVariantID = id
+        this.showAddressForm = true
+        setTimeout(() => {
+          this.$refs.justAddressForm.refocus()
+        }, 100)
+        return
+      }
+
       const data = new FormData()
       data.append('id', id)
+
+      if (this.addressObj) {
+        data.append('address', JSON.stringify(this.addressObj))
+      }
+
+      this.pendingVariantID = this.addressObj = null
+
       this.post({
         path: '/api/v/1/member/prepareMembership',
         data: data,
