@@ -22,6 +22,8 @@
       <p v-if="user.canRenew || !user.isPaidMember">
         <template v-for="subscription in sectionData.subscriptions">
           <v-btn
+            :disabled="processing"
+            :loading="processing"
             v-for="variant in subscription.variants"
             :key="`subscription-${variant.id}`"
             @click.prevent="doSubscription(variant.id)"
@@ -74,6 +76,7 @@ export default {
       showAddressForm: false,
       addressObj: null,
       pendingVariantID: null,
+      processing: false,
     }
   },
   computed: {
@@ -99,6 +102,11 @@ export default {
         this.loadSectionData()
       }
     },
+    dialog(nv) {
+      if (!nv) {
+        this.processing = false
+      }
+    },
   },
   created() {
     window.removeEventListener('keydown', this.keydownHandler)
@@ -107,7 +115,7 @@ export default {
   methods: {
     ...mapActions(['post', 'setStripeKey', 'setUser']),
     keydownHandler(e) {
-      if (e.key == 'Enter') {
+      if (e.target.type !== 'submit' && e.key == 'Enter') {
         e.preventDefault()
         e.stopPropagation()
         e.stopImmediatePropagation()
@@ -148,7 +156,7 @@ export default {
         },
       }).then(resp => {
         this.$refs.paymentForm.dismissSubmitting()
-        this.dialog = this.lockDialog = false
+        this.processing = this.dialog = this.lockDialog = false
 
         this.$store.dispatch('setShowModal', true)
         this.$store.dispatch('setModalColor', 'primary')
@@ -161,7 +169,7 @@ export default {
         this.loadSectionData()
       }).catch(error => {
         this.$refs.paymentForm.dismissSubmitting()
-        this.dialog = this.lockDialog = false
+        this.processing = this.dialog = this.lockDialog = false
         this.$store.dispatch('setShowModal', true)
         this.$store.dispatch('setModalColor', 'red')
         this.$store.dispatch('setPostbackMessage', error.response && error.response.data ? error.response.data.message : 'Uknown error')
@@ -169,6 +177,7 @@ export default {
       })
     },
     doSubscription(id) {
+      this.processing = true
       if (this.missingAddress) {
         this.pendingVariantID = id
         this.showAddressForm = true
@@ -195,6 +204,7 @@ export default {
         },
       }).then(resp => {
         this.setStripeKey(resp.data.stripe_key)
+        this.setUser(resp.data.user)
         this.$nextTick().then(() => {
           const amount = resp.data.payable_total < 0 ? 0 : resp.data.payable_total
           if (amount > 0) {

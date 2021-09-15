@@ -167,6 +167,7 @@ class Member extends RestfulController
             $cart->AddToCart($vid),
             [
                 'stripe_key' => json_decode(Environment::getEnv('Stripe'))->public,
+                'user' => $this->user,
             ]
         );
     }
