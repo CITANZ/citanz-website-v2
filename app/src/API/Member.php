@@ -136,13 +136,7 @@ class Member extends RestfulController
         }
 
         if (!$this->user->Addresses()->exists() || empty($this->user->Addresses()->first()->Address)) {
-            return $this->httpError(
-                400,
-                '<p>……那啥，麻烦你先去Profile里面把地址填一下好吗？</p>
-                <p>你是图方便，啥也不填，但我却要专门写代码检测你填没填。</p>
-                <p>说实话，很烦的🙄 甚至可能还要被🐸嚼，说我有时间在这里逼逼，早把增强UX的地址表单给你们做在会员缴费按钮上面了</p>
-                <p>所以，赶紧过去填一下吧！都是Google自动寻址，也就占用你个几秒时间的事 -- 赶紧的吧👉</p>
-            ');
+            return $this->httpError(400, 'Cannot detect address');
         }
 
         $vid = Convert::raw2sql($this->request->postVar('id'));
