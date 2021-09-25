@@ -133,7 +133,9 @@ class Member extends RestfulController
           $data = array_merge(
               $data,
               [
-                  'discountDesc' => "<small><em>* The discount of {$discount->Description} is valid until <u>{$discountValidUntil}</u></em></small>"
+                  'discountDesc' => $this->user->isRealStudent() ?
+                    "<small><em>* {$discount->Description} student discount has been applied</em></small>" : 
+                    "<small><em>* The discount of {$discount->Description} is valid until <u>{$discountValidUntil}</u></em></small>",
               ]
           );
         }
