@@ -92,6 +92,7 @@ class Member extends RestfulController
                 $highest = 0;
                 foreach ($subscription['variants'] as &$variant) {
                     $amount = $variant['price'];
+                    $variant['originalPrice'] = '$' . number_format($amount, 2);
 
                     if ($discount->DiscountBy == 'ByPercentage') {
                         $amount = $amount * (1 - $discount->DiscountRate * 0.01);
@@ -122,10 +123,22 @@ class Member extends RestfulController
             }
         }
 
-        return [
+        $data = [
             'user' => $this->user,
             'subscriptions' => $subscriptions,
         ];
+
+        if ($discount) {
+          $discountValidUntil = date('d/m/Y', strtotime($this->user->Expiry . ' +30 days'));
+          $data = array_merge(
+              $data,
+              [
+                  'discountDesc' => "<small><em>* The discount of {$discount->Description} is valid until <u>{$discountValidUntil}</u></em></small>"
+              ]
+          );
+        }
+
+        return $data;
     }
 
     public function prepareMembership(&$request)

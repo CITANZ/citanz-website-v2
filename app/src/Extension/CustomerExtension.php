@@ -2,6 +2,7 @@
 
 namespace App\Web\Extension;
 
+use SilverStripe\Assets\Image;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\TextareaField;
 use SilverStripe\Forms\TextField;
@@ -14,6 +15,7 @@ use SilverStripe\Assets\File;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\Forms\LiteralField;
 use Leochenftw\Grid;
+use App\Web\Model\StudentDiscountApplication;
 use Page;
 
 /**
@@ -39,6 +41,10 @@ class CustomerExtension extends DataExtension
         'Github' => 'Varchar',
     ];
 
+    private static $has_many = [
+        'StudentDiscountApplications' => StudentDiscountApplication::class,
+    ];
+
     public function usedToBeAMember()
     {
         return $this->owner->LastSubscription && !$this->owner->isValidMembership();
@@ -53,8 +59,10 @@ class CustomerExtension extends DataExtension
             'isPaidMember' => $this->owner->isValidMembership(),
             'expiry' => date('d/m/Y', strtotime($this->owner->Expiry)),
             'usedToBeAMember' => $this->owner->usedToBeAMember(),
+            'isStudent' => $this->owner->isStudent ? true : false,
             'isRealStudent' => $this->owner->isRealStudent(),
             'addressMissing' => $this->owner->Addresses()->first() ? empty($this->owner->Addresses()->first()->Address) : true,
+            'hasPendingStudentApplication' => $this->owner->StudentDiscountApplications()->filter(['Approved' => false, 'Rejected' => false])->exists(),
         ];
     }
 
@@ -74,7 +82,6 @@ class CustomerExtension extends DataExtension
             'dob' => $this->owner->Dob,
             'gender' => $this->owner->Gender,
             'address' => $this->owner->Addresses()->first(),
-            'isStudent' => $this->owner->isStudent ? true : false,
             'organisation' => $this->owner->Organisation,
             'degree' => $this->owner->Degree,
             'major' => $this->owner->Major,

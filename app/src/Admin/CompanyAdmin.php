@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Web\Admin;
+namespace App\Web\Admin;
 use SilverStripe\Admin\ModelAdmin;
 use App\Web\Model\Company;
 /**

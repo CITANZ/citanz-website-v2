@@ -14,7 +14,7 @@
       </p>
       <p class="text-vertical-center" v-if="user.isPaidMember">
         <template v-if="user.neverExpire">You are a perpetual member. No renewal is required.</template>
-        <span v-else>Your membership ends on {{ user.expiry }}.</span>
+        <span v-else>Your membership ends on <u>{{ user.expiry }}</u>.</span>
       </p>
       <p v-else-if="user.usedToBeAMember">
         <span>Your membership has <strong>expired</strong> on <u>{{ user.expiry }}</u>.</span>
@@ -28,9 +28,59 @@
             :key="`subscription-${variant.id}`"
             @click.prevent="doSubscription(variant.id)"
             depressed
-          >{{ variant.variant_title }} - {{ variant.price_label }}</v-btn>
+            color="primary"
+          >
+            {{ variant.variant_title }} - <strike style="margin-right: 0.25em;" v-if="variant.originalPrice">{{ variant.originalPrice }}</strike> {{ variant.price_label }}
+          </v-btn>
         </template>
       </p>
+      <p v-if="sectionData.discountDesc" v-html="sectionData.discountDesc"></p>
+
+      <div class="student-extr-info" v-if="user.isStudent && !user.isRealStudent">
+        <v-divider class="mt-4 mb-5"></v-divider>
+        <h3 class="mb-3">Student Discount</h3>
+        <p><small>Since you've claimed yourself as a student, here is a good news for you:</small></p>
+        <p>CITANZ offers a <strong>50% off discount</strong> to students on our membership.</p>
+        <p v-if="!user.hasPendingStudentApplication">To become a verified student and get the 50% discount, please submit a photo of the student ID.</p>
+        <v-form
+          v-if="!user.hasPendingStudentApplication"
+          method="post"
+          :disabled="busy"
+          @submit.prevent="doSubmit"
+        >
+          <div class="file-upload-holder">
+            <file-pond
+              name="studentIDPhoto"
+              :disabled="busy"
+              ref="pond"
+              label-idle="Drop or browse your files here..."
+              :allow-multiple="false"
+              accepted-file-types="image/jpeg, image/png"
+              :server="server"
+              :captureMethod="null"
+              :instantUpload="false"
+              :credits="null"
+              :allowProcess="false"
+              :allowRevert="true"
+            />
+          </div>
+            <div class="d-flex justify-space-between">
+              <p class="pr-4 mb-0"><small>Once the application is approved, the discount will be automatically applied.</small></p>
+              <v-btn
+                :disabled="busy"
+                :loading="busy"
+                type="submit"
+                depressed
+                color="primary"
+              >Submit</v-btn>
+            </div>
+        </v-form>
+        <template v-else>
+          <v-divider class="mb-4"></v-divider>
+          <p class="text-h5">Your application is being approved. You will receive an email when the approval is granted.</p>
+        </template>
+      </div>
+
       <v-dialog
         v-model="dialog"
         max-width="360"
@@ -62,6 +112,17 @@ import { mapGetters, mapActions } from 'vuex'
 import memberMixin from '../../../../mixins/memberMixin'
 import PaymentForm from '../../../blocks/forms/PaymentForm'
 import JustAddressForm from '../../../blocks/forms/JustAddressForm'
+import vueFilePond from 'vue-filepond'
+import 'filepond/dist/filepond.min.css'
+import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css'
+import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type'
+import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
+
+const FilePond = vueFilePond(
+  FilePondPluginFileValidateType,
+  FilePondPluginImagePreview
+)
+
 export default {
   name: 'membership-section',
   components: {
@@ -77,16 +138,31 @@ export default {
       addressObj: null,
       pendingVariantID: null,
       processing: false,
+      busy: false,
     }
   },
   computed: {
-    ...mapGetters(['user']),
+    ...mapGetters(['user', 'access_token']),
     missingAddress() {
       if (this.user) {
         return this.user.addressMissing && !this.addressObj
       }
 
       return true
+    },
+    requestHeaders() {
+      return {
+          Authorization: `Bearer ${this.access_token.access_token}`,
+        }
+    },
+    server() {
+      return {
+        url: `/api/v/1/sd-application/`,
+        process: {
+          url: 'attach',
+          headers: this.requestHeaders,
+        }
+      }
     },
   },
   watch: {
@@ -114,6 +190,26 @@ export default {
   },
   methods: {
     ...mapActions(['post', 'setStripeKey', 'setUser']),
+    doSubmit() {
+      if (this.busy) {
+        return
+      }
+
+      this.busy = true
+      this.post({
+        path: '/api/v/1/sd-application',
+        data: {},
+        headers: {
+          headers: this.requestHeaders,
+        },
+      }).then(resp => {
+        const user = resp.data.user
+        this.$refs.pond.processFiles().then(() => {
+          this.setUser(user)
+          this.busy = false
+        })
+      })
+    },
     keydownHandler(e) {
       if (e.target.type !== 'submit' && e.key == 'Enter') {
         e.preventDefault()

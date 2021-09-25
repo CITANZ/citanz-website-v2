@@ -43,7 +43,8 @@ class SiteConfigExtension extends DataExtension
         'MailchimpAPIKey'       =>  'Varchar(256)',
         'MailchimpURL'          =>  'Varchar(256)',
         'ShowNotification'      =>  'Boolean',
-        'NotificationContent'   =>  'Text'
+        'NotificationContent'   =>  'Text',
+        'StudentApplicationRecipient' => 'Text',
     ];
 
     /**
@@ -199,6 +200,10 @@ class SiteConfigExtension extends DataExtension
         $fields->addFieldsToTab(
             'Root.Notification',
             [
+                TextField::create(
+                  'StudentApplicationRecipient',
+                  'Send email notification to, when a new student application has been submited'
+                )->setDescription('separate multiple emails with ","'),
                 LinkField::create('NotificationLink', 'Notification Link', $this->owner),
                 TextField::create('NotificationContent', 'Notification Content'),
                 CheckboxField::create('ShowNotification', 'Display the notification message on the top of the frontend pages')
