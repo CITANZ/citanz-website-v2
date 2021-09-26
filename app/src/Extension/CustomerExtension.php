@@ -41,6 +41,10 @@ class CustomerExtension extends DataExtension
         'Github' => 'Varchar',
     ];
 
+    private static $summary_fields = [
+        'CitaID' => 'Member ID',
+    ];
+
     private static $has_many = [
         'StudentDiscountApplications' => StudentDiscountApplication::class,
     ];

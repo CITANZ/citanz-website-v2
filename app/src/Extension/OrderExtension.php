@@ -70,16 +70,17 @@ class OrderExtension extends DataExtension
             }
 
             if ($order->Customer()->exists()) {
-                if ($paidMemberGroup = CustomerGroup::get()->filter(['Title' => 'Paid members'])->first()) {
-
-                    if ($latest = Customer::get()->sort('CitaID', 'DESC')->first()) {
-                        $fullID = explode('-', $latest->CitaID);
-                        if (count($fullID) > 1) {
-                            $id = (int) $fullID[1];
-                            $id++;
-                            $order->Customer()->update([
-                                'CitaID' => 'CITANZ-' . str_pad($id, 4, "0", STR_PAD_LEFT),
-                            ])->write();
+                if ($paidMemberGroup = CustomerGroup::get()->filter(['Title:nocase' => 'Paid members'])->first()) {
+                    if (empty($order->Customer()->CitaID)) {
+                        if ($latest = Customer::get()->sort('CitaID', 'DESC')->first()) {
+                            $fullID = explode('-', $latest->CitaID);
+                            if (count($fullID) > 1) {
+                                $id = (int) $fullID[1];
+                                $id++;
+                                $order->Customer()->update([
+                                    'CitaID' => 'CITANZ-' . str_pad($id, 4, "0", STR_PAD_LEFT),
+                                ])->write();
+                            }
                         }
                     }
 
