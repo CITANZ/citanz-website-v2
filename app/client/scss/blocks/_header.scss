@@ -1,0 +1,34 @@
+.v-app-bar {
+  .v-toolbar__content {
+    display: block;
+    padding: 0;
+    .container {
+      position: relative;
+      .v-toolbar__menu {
+        @include media-breakpoint-down(xs) {
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.3s ease-out;
+          border-top: 1px solid rgba(0, 0, 0, 0.05);
+          position: absolute;
+          display: block !important;
+          bottom: 0;
+          transform: translateY(80%);
+          left: 0;
+          width: 100%;
+          background-color: white;
+          box-shadow: 0 8px 16px rgb(0 8 15 / 10%);
+          .v-btn {
+            padding: 18px 16px;
+          }
+
+          &.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(100%);
+          }
+        }
+      }
+    }
+  }
+}

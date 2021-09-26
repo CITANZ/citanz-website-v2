@@ -38,4 +38,7 @@ export default {
   skipFetchOnce(state) {
     return state.skipFetchOnce
   },
+  width(state) {
+    return state.width
+  },
 }

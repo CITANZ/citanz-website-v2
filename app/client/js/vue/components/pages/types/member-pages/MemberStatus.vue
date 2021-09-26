@@ -173,10 +173,8 @@ export default {
         window.removeEventListener('keydown', this.keydownHandler)
       }
     },
-    refreshingToken(nv, ov) {
-      if (!ov && nv) {
+    refreshingToken() {
         this.loadSectionData()
-      }
     },
     dialog(nv) {
       if (!nv) {

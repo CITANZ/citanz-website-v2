@@ -45,4 +45,7 @@ export default {
   SET_SKIP_FETCH(state, status) {
     state.skipFetchOnce = status
   },
+  SET_WIDTH(state, width) {
+    state.width = width
+  },
 }

@@ -1,5 +1,8 @@
 <template>
-<div :class="['page-hero', {'alone': isLoneHero}]">
+<div
+  :style="`--lone-hero-padding: ${heroPadding}px;`"
+  :class="['page-hero', {'alone': isLoneHero}]"
+>
   <v-img
     v-if="isLoneHero"
     :aspect-ratio="firstHero.width/firstHero.height"
@@ -25,12 +28,19 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
 export default {
   name: 'page-hero',
   props: {
     hero: Array,
   },
+  data() {
+    return {
+      heroPadding: 0
+    }
+  },
   computed: {
+    ...mapGetters(['width']),
     firstHero() {
       return this.hero[0]
     },
@@ -43,7 +53,19 @@ export default {
     },
     isLoneHero() {
       return this.hero.length === 1
-    }
+    },
+  },
+  watch: {
+    width(nv) {
+      const container = document.querySelector('.container')
+      this.heroPadding = nv - container.offsetWidth > 0 ? (nv - container.offsetWidth) * 0.5 + 12 : 0
+    },
+  },
+  mounted() {
+    this.$nextTick().then(() => {
+      const container = document.querySelector('.container')
+      this.heroPadding = this.width - container.offsetWidth > 0 ? (this.width - container.offsetWidth) * 0.5 + 12 : 0
+    })
   }
 }
 </script>

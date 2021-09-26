@@ -176,9 +176,15 @@ MSG;
         $this->Rejected = false;
         $this->write();
 
+        if (!$this->Customer()->exists()) {
+            return;
+        }
+
         if ($group = $this->StudentGroup) {
             $group->Customers()->add($this->Customer());
         }
+
+        $this->notifyCustomer($this->Customer());
     }
 
     public function rejectApplication()
@@ -187,9 +193,32 @@ MSG;
         $this->Approved = false;
         $this->write();
 
+        if (!$this->Customer()->exists()) {
+            return;
+        }
+
         if ($group = $this->StudentGroup) {
             $group->Customers()->remove($this->Customer());
         }
+
+        $this->notifyCustomer($this->Customer());
+    }
+
+    private function notifyCustomer($customer)
+    {
+        $email = Email::create('noreply@cita.org.nz', $customer->Email, '[CITANZ] New student account application received');
+        $body = <<<MSG
+  <p>Hi {$customer->FirstName}</p>
+
+  <p>We're writing to let you know that your CITANZ student discount application has been <strong>{$this->Decision}</strong>.</p>
+
+  <p>If you have any further questions, please contact us via <a href="mailto:info@cita.org.nz">info@cita.org.nz</a></p>
+
+  <p>Kind regards<br />
+  CITANZ</p>
+  MSG;
+        $email->setBody($body);
+        $email->send();
     }
 
     public function Title()

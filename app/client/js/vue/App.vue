@@ -62,7 +62,11 @@ export default {
   created() {
     console.log(this.site_data)
     this.updateAccessToken()
-    window.addEventListener("focus", this.updateAccessToken)
+    window.addEventListener('resize', this.handleWindowResize)
+    window.addEventListener('focus', this.updateAccessToken)
+  },
+  mounted() {
+    this.setWidth(document.body.offsetWidth)
   },
   computed: {
     ...mapGetters([
@@ -75,7 +79,10 @@ export default {
     ]),
   },
   methods: {
-    ...mapActions(['setRefreshingToken', 'setSkipFetchOnce']),
+    ...mapActions(['setRefreshingToken', 'setSkipFetchOnce', 'setWidth']),
+    handleWindowResize() {
+      this.setWidth(document.body.offsetWidth)
+    },
     timerClearer() {
       if (this.pendingTokenUpdater) {
         clearTimeout(this.pendingTokenUpdater)

@@ -12,4 +12,5 @@ export default {
   stripeKey: null,
   refreshingToken: true,
   skipFetchOnce: false,
+  width: 320,
 }

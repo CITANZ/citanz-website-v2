@@ -88,6 +88,10 @@ export default {
     commit('SET_SKIP_FETCH', status)
   },
 
+  setWidth({ commit }, width) {
+    commit('SET_WIDTH', width)
+  },
+
   getCSRFToken({ commit }, path) {
     return new Promise((resolve, reject) => {
       axios.get(path).then(resolve).catch(reject)

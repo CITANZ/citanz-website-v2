@@ -9,7 +9,7 @@
     </v-row>
     <div class="mailchimp">
       <p :class="'help show-on-phone is-' + message.type" v-if="message.text" v-html="message.text"></p>
-      <form class="mailchimp-form" @submit.prevent="submit">
+      <v-form ref="form" class="mailchimp-form" @submit.prevent="submit">
         <v-row align="center">
           <v-col cols="12" sm="auto">
             <v-text-field
@@ -37,7 +37,7 @@
             <v-btn type="submit" :loading="is_loading" depressed>Stay in the loop</v-btn>
           </v-col>
         </v-row>
-      </form>
+      </v-form>
       <p :class="'help hide-on-phone is-' + message.type" v-if="message.text" v-html="message.text"></p>
     </div>
   </v-container>
@@ -45,6 +45,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'mail-chimp',
   props: {
@@ -79,7 +81,7 @@ export default {
       data.append('firstname', this.firstname)
       data.append('lastname', this.lastname)
       axios.post(
-          base_url + endpoints.subscribe,
+          '/api/v/1/subscribe',
           data
       ).then((resp) => {
           me.is_loading   =   false
@@ -88,6 +90,7 @@ export default {
           me.email        =   null
           me.firstname    =   null
           me.lastname     =   null
+          this.$refs.form.reset()
       }).catch((error) => {
           me.is_loading   =   false
           if (error.response.data.message) {
