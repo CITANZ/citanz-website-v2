@@ -97,7 +97,6 @@ export default {
     if (this.site_data.recoveryMode && this.$route.params.action !== 'reset-password') {
         this.$router.replace({ params: { action: 'reset-password'} })
     }
-    console.log(this.$route.params)
   },
   computed: {
     ...mapGetters(['access_token', 'user']),

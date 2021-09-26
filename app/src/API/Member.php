@@ -44,7 +44,7 @@ class Member extends RestfulController
         $this->user = $this->authenticate();
 
         if (!$this->user || $this->user instanceof HTTPResponse) {
-            return $this->httpError('Unauthorised', 401);
+            return $this->httpError(401, 'Unauthorised');
         }
 
         if ($action = $request->param('action')) {
@@ -134,7 +134,7 @@ class Member extends RestfulController
               $data,
               [
                   'discountDesc' => $this->user->isRealStudent() ?
-                    "<small><em>* {$discount->Description} student discount has been applied</em></small>" : 
+                    "<small><em>* {$discount->Description} student discount has been applied</em></small>" :
                     "<small><em>* The discount of {$discount->Description} is valid until <u>{$discountValidUntil}</u></em></small>",
               ]
           );

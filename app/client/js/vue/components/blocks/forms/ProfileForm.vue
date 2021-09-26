@@ -365,7 +365,7 @@ export default {
     this.getFullProfile()
   },
   methods: {
-    ...mapActions(['get', 'post', 'setUser']),
+    ...mapActions(['get', 'post', 'setUser', 'setAccessToken']),
     // fuck Chrome - thanks, but no fanks
     disableChromeAutofill() {
       if (!this.$refs.addressField) return
@@ -398,6 +398,14 @@ export default {
         this.setUser(resp.data.basic)
         this.$emit('data-loaded', resp.data.basic)
         this.reset()
+      }).catch(error => {
+        if (error.response && error.response.data && error.response.data.code === 401) {
+          this.setAccessToken(null)
+          this.setUser(null)
+          this.$router.replace('/')
+        } else if (error.response && error.response.data && error.response.data.message) {
+          alert(error.response.data.message)
+        }
       })
     },
     reset() {

@@ -187,7 +187,7 @@ export default {
     this.loadSectionData()
   },
   methods: {
-    ...mapActions(['post', 'setStripeKey', 'setUser']),
+    ...mapActions(['post', 'setStripeKey', 'setUser', 'setAccessToken']),
     doSubmit() {
       if (this.busy) {
         return
@@ -237,6 +237,14 @@ export default {
         this.sectionDataLoaded = true
         this.setUser(resp.data.user)
         this.sectionData = resp.data
+      }).catch(error => {
+        if (error.response && error.response.data && error.response.data.code === 401) {
+          this.setAccessToken(null)
+          this.setUser(null)
+          this.$router.replace('/')
+        } else if (error.response && error.response.data && error.response.data.message) {
+          alert(error.response.data.message)
+        }
       })
     },
     submitStripePayment(token) {
