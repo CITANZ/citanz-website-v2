@@ -18,3 +18,4 @@ app/client/dist/
 
 app/certs/*/*.key
 .env.local
+magick-*
