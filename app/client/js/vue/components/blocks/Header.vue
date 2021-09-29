@@ -2,7 +2,8 @@
   <v-app-bar
     color="white"
     fixed
-    elevate-on-scroll
+    :elevate-on-scroll="$route.name !== 'MemberCentre'"
+    :elevation="$route.name !== 'MemberCentre' ? undefined : 0"
     app
     height="72"
   >

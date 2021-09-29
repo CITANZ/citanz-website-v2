@@ -1,5 +1,12 @@
 @import "https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900";
 @import "https://cdn.materialdesignicons.com/5.4.55/css/materialdesignicons.min.css";
+@import url(https://fonts.googleapis.com/css?family=Montserrat:400,400i,500,600,700,700i|Source+Sans+Pro);
+
+html,
+body,
+#app {
+  font-family: Source Sans Pro,sans-serif;
+}
 
 #app {
   transition: all ease-out .5s;
@@ -11,10 +18,14 @@
     @import './mixins';
     @import './base/reset';
     @import './base/helper';
+    @import './base/typography';
     @import './blocks/header';
     @import './blocks/hero';
+    @import './blocks/footer';
     @import './blocks/iconed-block';
     @import './blocks/form-signin';
     @import './blocks/form-payment';
+    @import './blocks/mailchimp-section';
+    @import './blocks/title-section';
   }
 }

@@ -1,0 +1,37 @@
+.mailchimp-section {
+  position: relative;
+  background-color: var(--secondary-blue);
+  padding-top: 60px;
+  padding-bottom: 72px;
+  color: white;
+
+  @include media-breakpoint-up(md) {
+    --mailchimp-control-min-height: 48px;
+  }
+
+  .mailchimp-form {
+    .v-btn,
+    .v-text-field.v-text-field--solo.v-input--dense>.v-input__control {
+      min-height: var(--mailchimp-control-min-height);
+    }
+
+    .v-text-field.v-text-field--solo:not(.v-text-field--solo-flat)>.v-input__control>.v-input__slot {
+      box-shadow: none;
+    }
+
+    .error--text {
+      &:not(.v-label):not(.v-input) {
+        color: white !important;
+        caret-color: white !important;
+      }
+    }
+
+    .col-12 {
+      @include media-breakpoint-down(sm) {
+        &:not(:last-child) {
+          margin-bottom: -12px;
+        }
+      }
+    }
+  }
+}

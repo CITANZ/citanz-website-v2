@@ -1,45 +1,58 @@
 <template>
 <section class="section mailchimp-section">
   <v-container>
-    <h2 class="text-center mb-4">{{ mcData.title }}</h2>
-    <v-row class="text-center">
-      <v-col cols="12" sm="6" offset-sm="3">
+    <h2 class="text-center mb-4 text-h4">{{ mcData.title }}</h2>
+    <v-row class="text-center mb-6">
+      <v-col cols="12" md="6" offset-md="3">
         <div class="typography" v-html="mcData.content"></div>
       </v-col>
     </v-row>
-    <div class="mailchimp">
-      <p :class="'help show-on-phone is-' + message.type" v-if="message.text" v-html="message.text"></p>
-      <v-form ref="form" class="mailchimp-form" @submit.prevent="submit">
-        <v-row align="center">
-          <v-col cols="12" sm="auto">
-            <v-text-field
-              :rules="[rules.required]"
-              label="First Name"
-              v-model="firstname"
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" sm="auto">
-            <v-text-field
-              :rules="[rules.required]"
-              label="Last Name"
-              v-model="lastname"
-            ></v-text-field>
-          </v-col>
-          <v-col>
-            <v-text-field
-              :rules="[rules.required, rules.email]"
-              label="Email Address"
-              type="email"
-              v-model="email"
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" sm="auto">
-            <v-btn type="submit" :loading="is_loading" depressed>Stay in the loop</v-btn>
-          </v-col>
-        </v-row>
-      </v-form>
-      <p :class="'help hide-on-phone is-' + message.type" v-if="message.text" v-html="message.text"></p>
-    </div>
+    <v-row class="text-center">
+      <v-col cols="12" md="10" offset-md="1">
+        <div class="mailchimp">
+          <p :class="'help d-block d-sm-none is-' + message.type" v-if="message.text" v-html="message.text"></p>
+          <v-form ref="form" class="mailchimp-form" @submit.prevent="submit">
+            <v-row justify="center">
+              <v-col cols="12" md="auto">
+                <v-text-field
+                  solo
+                  :rules="[rules.required]"
+                  label="First Name"
+                  v-model="firstname"
+                  dense
+                  depressed
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="auto">
+                <v-text-field
+                  solo
+                  :rules="[rules.required]"
+                  label="Last Name"
+                  v-model="lastname"
+                  dense
+                  depressed
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" md="auto">
+                <v-text-field
+                  solo
+                  :rules="[rules.required, rules.email]"
+                  label="Email Address"
+                  type="email"
+                  v-model="email"
+                  dense
+                  depressed
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="auto">
+                <v-btn color="primary" type="submit" :loading="is_loading" depressed>Stay in the loop</v-btn>
+              </v-col>
+            </v-row>
+          </v-form>
+          <p :class="'help mb-0 d-none d-sm-block is-' + message.type" v-if="message.text" v-html="message.text"></p>
+        </div>
+      </v-col>
+    </v-row>
   </v-container>
 </section>
 </template>

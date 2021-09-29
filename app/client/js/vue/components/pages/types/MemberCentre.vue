@@ -147,7 +147,7 @@ export default {
 nav {
   .v-list.v-sheet {
     position: sticky;
-    top: 76px;
+    top: 84px;
   }
 }
 </style>

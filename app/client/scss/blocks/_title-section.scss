@@ -1,0 +1,27 @@
+.title-section {
+  padding-top: 64px;
+  padding-bottom: 80px;
+  h1 {
+    font-size: 44px;
+  }
+
+  @include media-breakpoint-down(md) {
+    h1 {
+      font-size: 40px;
+    }
+  }
+
+  @include media-breakpoint-down(sm) {
+    padding-top: 40px;
+    padding-bottom: 40px;
+    h1 {
+      font-size: 36px;
+    }
+  }
+
+  .typography {
+    line-height: 2;
+    letter-spacing: 0.2px;
+    color: var(--descriptive);
+  }
+}
