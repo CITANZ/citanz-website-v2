@@ -77,6 +77,11 @@ export default {
   },
   methods: {
     fetchSectionData() {
+      if (!this.user) {
+        this.$router.replace('/member')
+        return
+      }
+
       this.get(
         {
           path: `/api/v/1/member/getSecuritySectionData`,

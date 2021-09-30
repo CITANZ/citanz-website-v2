@@ -51,6 +51,10 @@ export default {
     commit('SET_REFRESHING_TOKEN', status)
   },
 
+  setMemberMenuShown({ commit }, status) {
+    commit('SET_MEMBER_MENU_STATE', status)
+  },
+
   refreshToken({ commit, dispatch }, payload) {
     return new Promise((resolve, reject) => {
       axios.post(

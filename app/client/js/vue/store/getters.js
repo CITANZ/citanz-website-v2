@@ -41,4 +41,7 @@ export default {
   width(state) {
     return state.width
   },
+  memberMenuShown(state) {
+    return state.memberMenuShown
+  },
 }

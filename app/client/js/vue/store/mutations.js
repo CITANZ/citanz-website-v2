@@ -48,4 +48,7 @@ export default {
   SET_WIDTH(state, width) {
     state.width = width
   },
+  SET_MEMBER_MENU_STATE(state, status) {
+    state.memberMenuShown = status
+  },
 }

@@ -4,7 +4,7 @@
       <section-title :srOnly="true" />
       <v-container>
         <v-row>
-          <v-col cols="12" sm="4" md="3" tag="nav">
+          <v-col id="member-menu" :class="{active: memberMenuShown}" cols="12" sm="4" md="3" tag="nav">
             <v-list v-if="user || isRecoveryMode">
               <v-list-item-group>
                 <v-list-item
@@ -98,8 +98,16 @@ export default {
         this.$router.replace({ params: { action: 'reset-password'} })
     }
   },
+  watch: {
+    memberMenuShown(nv) {
+      window.removeEventListener('mousedown', this.mousedownHandler)
+      if (nv) {
+        window.addEventListener('mousedown', this.mousedownHandler)
+      }
+    },
+  },
   computed: {
-    ...mapGetters(['access_token', 'user']),
+    ...mapGetters(['access_token', 'user', 'memberMenuShown']),
     isRecoveryMode() {
       if (!this.site_data) {
         return false
@@ -111,10 +119,10 @@ export default {
       return this.$route.params.action === 'reset-password'
     },
     isMe() {
-      return this.$route.params.action === 'me' && this.user
+      return this.$route.params.action === 'me'
     },
     isMembershipSection() {
-      return this.$route.params.action === 'membership' && this.user
+      return this.$route.params.action === 'membership'
     },
     isPaymentsSection() {
       return this.$route.params.action === 'payments'
@@ -124,11 +132,28 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['setAccessToken', 'setUser']),
+    ...mapActions(['setAccessToken', 'setUser', 'setMemberMenuShown']),
+    mousedownHandler(e) {
+      window.removeEventListener('mousedown', this.mousedownHandler)
+      if (!e.target.closest('#member-menu') && !e.target.closest('#member-menu-button')) {
+        this.setMemberMenuShown(false)
+      }
+    },
     doSignout() {
       if (confirm('You sure?')) {
         this.setAccessToken(null)
         this.setUser(null)
+
+        if (this.$route.path != '/member/me') {
+          this.$router.replace('/member')
+        }
+
+        this.$nextTick().then(() => {
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth',
+          })
+        })
       }
     },
     onAccountActivated(payload) {

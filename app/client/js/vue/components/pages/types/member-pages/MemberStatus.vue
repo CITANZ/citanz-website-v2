@@ -142,7 +142,6 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['user', 'access_token']),
     missingAddress() {
       if (this.user) {
         return this.user.addressMissing && !this.addressObj
@@ -174,7 +173,7 @@ export default {
       }
     },
     refreshingToken() {
-        this.loadSectionData()
+      this.loadSectionData()
     },
     dialog(nv) {
       if (!nv) {
@@ -187,7 +186,7 @@ export default {
     this.loadSectionData()
   },
   methods: {
-    ...mapActions(['post', 'setStripeKey', 'setUser', 'setAccessToken']),
+    ...mapActions(['post', 'setStripeKey', 'setAccessToken']),
     doSubmit() {
       if (this.busy) {
         return
@@ -222,6 +221,12 @@ export default {
       this.doSubscription(this.pendingVariantID)
     },
     loadSectionData() {
+      console.log('huh?')
+      if (!this.user) {
+        this.$router.replace('/member')
+        return
+      }
+
       if (this.refreshingToken || !this.accessToken) {
         return
       }

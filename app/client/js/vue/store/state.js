@@ -13,4 +13,5 @@ export default {
   refreshingToken: true,
   skipFetchOnce: false,
   width: 320,
+  memberMenuShown: false,
 }

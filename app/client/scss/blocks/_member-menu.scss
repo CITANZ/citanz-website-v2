@@ -1,0 +1,45 @@
+#member-menu {
+  @include media-breakpoint-down(xs) {
+    position: fixed;
+    padding: 0;
+    box-shadow: 0 -4px 12px;
+    width: 100%;
+    left: 0;
+    z-index: 2;
+    background-color: white;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-out;
+    transform: translateY(-11px);
+    pointer-events: none;
+
+    &.active {
+      pointer-events: auto;
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0px);
+    }
+  }
+}
+
+#member-menu-button {
+  @include media-breakpoint-down(xs) {
+    &.active {
+      &,
+      &:hover {
+        &::before {
+          opacity: 0.18;
+        }
+      }
+    }
+  }
+
+  &.theme--light.v-btn--active {
+    &,
+    &:hover {
+      &::before {
+        opacity: 0;
+      }
+    }
+  }
+}

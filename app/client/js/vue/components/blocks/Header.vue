@@ -40,9 +40,19 @@
           <v-icon>mdi-account-circle</v-icon>
         </v-btn>
         <v-btn
-          v-else
+          id="member-menu-button"
+          v-else-if="$route.name !== 'MemberCentre'"
           icon
           to="/member/me"
+        >
+          <v-icon>mdi-account-circle</v-icon>
+        </v-btn>
+        <v-btn
+          id="member-menu-button"
+          :class="{active: memberMenuShown}"
+          v-else
+          icon
+          @click.prevent="setMemberMenuShown(!memberMenuShown)"
         >
           <v-icon>mdi-account-circle</v-icon>
         </v-btn>
@@ -76,13 +86,16 @@ export default {
         window.removeEventListener('mousedown', this.mousedownHandler)
         window.addEventListener('mousedown', this.mousedownHandler)
       }
-    }
+    },
+    memberMenuShown() {
+      this.showMenu = false
+    },
   },
   computed: {
-    ...mapGetters(['showSigninForm', 'user']),
+    ...mapGetters(['showSigninForm', 'user', 'memberMenuShown']),
   },
   methods: {
-    ...mapActions(['toggleSigninForm']),
+    ...mapActions(['toggleSigninForm', 'setMemberMenuShown']),
     handleUserBtnClicked() {
       this.showMenu = false
       this.toggleSigninForm()

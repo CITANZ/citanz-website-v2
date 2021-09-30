@@ -42,7 +42,8 @@ export default {
   },
   watch: {
     $route(to) {
-      this.$store.dispatch('toggleSigninForm', false)
+      this.toggleSigninForm(false)
+      this.setMemberMenuShown(false)
       if (!this.skipFetchOnce) {
         this.$store.dispatch("getPageData", to.fullPath)
       }
@@ -79,7 +80,13 @@ export default {
     ]),
   },
   methods: {
-    ...mapActions(['setRefreshingToken', 'setSkipFetchOnce', 'setWidth']),
+    ...mapActions([
+      'setRefreshingToken',
+      'setSkipFetchOnce',
+      'setWidth',
+      'setMemberMenuShown',
+      'toggleSigninForm',
+    ]),
     handleWindowResize() {
       this.setWidth(document.body.offsetWidth)
     },

@@ -27,6 +27,7 @@
       </template>
     </v-data-table>
     <v-pagination
+      v-if="sectionData"
       v-model="page"
       class="my-4"
       :length="sectionData.pages"
@@ -101,6 +102,11 @@ export default {
   methods: {
     ...mapActions(['get', 'setSkipFetchOnce']),
     loadSectionData() {
+      if (!this.user) {
+        this.$router.replace('/member')
+        return
+      }
+
       if (this.refreshingToken || !this.accessToken) {
         return
       }

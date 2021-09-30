@@ -3,15 +3,26 @@ export default {
   data() {
     return {
       sectionDataLoaded: false,
-      sectionData: false,
+      sectionData: null,
     }
   },
   emits: ['data-loaded'],
   computed: {
-    ...mapGetters(['refreshingToken','access_token']),
+    ...mapGetters(['refreshingToken','access_token', 'user']),
     accessToken() {
       return this.access_token
     },
+  },
+  watch: {
+    user() {
+      if (!this.user) {
+        this.sectionDataLoaded = false
+        this.sectionData = null
+        if (this.$route.path != '/member/me') {
+          this.$router.replace('/member')
+        }
+      }
+    }
   },
   methods: {
     ...mapActions(['get', 'post', 'setUser']),
