@@ -41,6 +41,8 @@ class CustomerExtension extends DataExtension
         'Github' => 'Varchar',
     ];
 
+    private static $default_sort = ['CitaID' => 'ASC'];
+
     private static $summary_fields = [
         'CitaID' => 'Member ID',
     ];
@@ -52,6 +54,12 @@ class CustomerExtension extends DataExtension
     public function usedToBeAMember()
     {
         return $this->owner->LastSubscription && !$this->owner->isValidMembership();
+    }
+
+    public function updateCMSFields(FieldList $fields)
+    {
+        $fields->fieldByName('Root.Main.Degree')->setEmptyString('- select one -');
+        return $fields;
     }
 
     public function getExtraCustomerData()

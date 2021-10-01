@@ -53,13 +53,19 @@ class ImportMembers extends BuildTask
 
             if (file_exists($csvFile)) {
                 $data = new CSVParser($csvFile);
-                $group = CustomerGroup::get()->first();
+                $group = CustomerGroup::get()->filter(['Title:nocase' => 'Paid members'])->first();
 
                 foreach ($data as $item) {
+                    $item['FirstName'] = ucwords(strtolower($item['FirstName']));
+                    $item['LastName'] = ucwords(strtolower($item['LastName']));
+                    $item['Gender'] = null;
+                    $item['Degree'] = null;
+                    $item['TitleLevel'] = null;
+
                     $member = Customer::get()->filter(['Email' => $item['Email']])->first();
                     $member = $member ?? Customer::create();
                     $member->update($item)->write();
-                    $group->Customers()->add($customer);
+                    $group->Customers()->add($member);
 
                     print $item['Email'] . ' has been imported/updated!' . PHP_EOL;
                 }

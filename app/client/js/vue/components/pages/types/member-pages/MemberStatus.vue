@@ -34,7 +34,7 @@
           </v-btn>
         </template>
       </p>
-      <p v-if="sectionData.discountDesc" v-html="sectionData.discountDesc"></p>
+      <p v-if="user.canRenew && sectionData.discountDesc" v-html="sectionData.discountDesc"></p>
 
       <div class="student-extr-info" v-if="user.isStudent && !user.isRealStudent">
         <v-divider class="mt-4 mb-5"></v-divider>
