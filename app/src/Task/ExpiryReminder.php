@@ -68,6 +68,12 @@ class ExpiryReminder extends BuildTask
                     echo $member->FirstName . "'s removed from paid members";
                     echo PHP_EOL;
                     $group->Customers()->remove($member);
+                    // once your membership is up, your student status is up too
+                    $studentGroup = CustomerGroup::get()->filter(['Title:nocase' => 'Student members'])->first();
+                    if ($studentGroup->Customers()->byID($member->ID)) {
+                        $studentGroup->Customers()->remove($member);
+                    }
+
                     $this->sendMembershipTerminatedNotice($member);
                     $this->notifyAdminMembershipEnded($member);
                 }
