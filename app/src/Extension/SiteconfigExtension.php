@@ -45,6 +45,7 @@ class SiteConfigExtension extends DataExtension
         'ShowNotification'      =>  'Boolean',
         'NotificationContent'   =>  'Text',
         'StudentApplicationRecipient' => 'Text',
+        'AccountAffairsRecipient' => 'Text',
     ];
 
     /**
@@ -203,6 +204,10 @@ class SiteConfigExtension extends DataExtension
                 TextField::create(
                   'StudentApplicationRecipient',
                   'Send email notification to, when a new student application has been submited'
+                )->setDescription('separate multiple emails with ","'),
+                TextField::create(
+                  'AccountAffairsRecipient',
+                  'Send email notification to, when any account related events happens'
                 )->setDescription('separate multiple emails with ","'),
                 LinkField::create('NotificationLink', 'Notification Link', $this->owner),
                 TextField::create('NotificationContent', 'Notification Content'),

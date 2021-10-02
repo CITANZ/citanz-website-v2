@@ -2,6 +2,7 @@
 
 namespace App\Web\Task;
 
+use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\Dev\Debug;
 use SilverStripe\Dev\BuildTask;
 use Cita\eCommerce\Model\CustomerGroup;
@@ -68,8 +69,38 @@ class ExpiryReminder extends BuildTask
                     echo PHP_EOL;
                     $group->Customers()->remove($member);
                     $this->sendMembershipTerminatedNotice($member);
+                    $this->notifyAdminMembershipEnded($member);
                 }
             }
+        }
+    }
+
+    private function notifyAdminMembershipEnded($member)
+    {
+        $name = trim("{$member->FirstName} {$member->LastName}");
+        $citaId = $member->CitaID;
+
+        $recipients = explode(',', SiteConfig::current_site_config()->AccountAffairsRecipient);
+        foreach ($recipients as $recipient) {
+            $recipient = trim($recipient);
+
+            $email = Email::create(
+              'noreply@cita.org.nz',
+              $recipient,
+              "[CITANZ] $name ($citaId) has been removed from paid member group"
+            );
+            $link = Environment::getEnv('SS_BASE_URL') . "admin/customers/Cita-eCommerce-Model-Customer/EditForm/field/Cita-eCommerce-Model-Customer/item/{$member->ID}/edit";
+
+            $body = <<<MSG
+<p>Hi admin</p>
+
+<p><a href="$link" target="_blank">$name ($citaId)</a> has been removed from paid member, because he/she didn't renew his/her membership after 30 days from the expiry date.</p>
+
+<p>Kind regards<br />
+CITANZ</p>
+MSG;
+            $email->setBody($body);
+            $email->send();
         }
     }
 
@@ -83,7 +114,7 @@ class ExpiryReminder extends BuildTask
 
   <p>Your CITANZ membership is going to expire in {$days} days.</p>
 
-  <p>If <a href="$Link" target="_blank">renew now</a>, you can receive a 20% off discount. (Students will get a 50% off discount)</p>
+  <p>If <a href="$link" target="_blank">renew now</a>, you can receive a 20% off discount. (Students will get a 50% off discount)</p>
 
   <p>Kind regards<br />
   CITANZ</p>
@@ -105,9 +136,11 @@ class ExpiryReminder extends BuildTask
         $body = <<<MSG
 <p>Hi {$member->FirstName}</p>
 
-<p>It's just a notice letting you know that you have been removed from CITANZ's member group, after 30 days of your membership expiry.</p>
+<p>It's just a notice letting you know that you have been removed from CITANZ's member group, for failing to renew the membership after 30 days from the membership expiration.</p>
 
-<p>You can check your account's status at <a href="$Link" target="_blank">our member centre</a>.</p>
+<p>You can check your account's status at <a href="$link" target="_blank">our member centre</a>.</p>
+
+<p>If you believe this email is sent by mistake, please contact us via <a href="mailto:membership@cita.org.nz" target="_blank">membership@cita.org.nz</a>.</p>
 
 <p>Thanks for supporting us over the past years, and we sincerely hope our paths will cross again!</p>
 
@@ -122,20 +155,21 @@ MSG;
     {
         $email = Email::create('noreply@cita.org.nz', $member->Email, '[CITANZ] Membership has expired');
         $discountValidUntil = date('d/m/Y', strtotime($member->Expiry . ' +30 days'));
-        $link = Environment::getEnv('SS_BASE_URL') . 'member';
+        $link = Environment::getEnv('SS_BASE_URL') . 'member/membership';
 
         $body = <<<MSG
 <p>Hi {$member->FirstName}</p>
 
-<p>It's a notice that your CITANZ's membership has expired. The renew discount will last until {$discountValidUntil}.</p>
+<p>It's a notice that your CITANZ's membership has expired, but the renewal discount (20% off or 50% off for students) will still last until {$discountValidUntil}.</p>
 
-<p><a href="$Link" target="_blank">Renew now</a></p>
+<p><a href="$link" target="_blank">Renew now</a></p>
 
 <p>Kind regards<br />
 CITANZ</p>
 MSG;
         $email->setBody($body);
         $email->send();
+
         $member->Expiry0Reminded = true;
         $member->write();
     }

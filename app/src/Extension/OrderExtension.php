@@ -2,10 +2,14 @@
 
 namespace App\Web\Extension;
 
+use SilverStripe\Forms\FieldList;
 use Cita\eCommerce\Model\SubscriptionOrder;
 use SilverStripe\ORM\DataExtension;
 use Cita\eCommerce\Model\CustomerGroup;
 use Cita\eCommerce\Model\Customer;
+use SilverStripe\Control\Email\Email;
+use SilverStripe\Core\Environment;
+use SilverStripe\SiteConfig\SiteConfig;
 
 /**
  * @file SiteConfigExtension
@@ -92,7 +96,43 @@ class OrderExtension extends DataExtension
 
                     $paidMemberGroup->Customers()->add($order->CustomerID);
                 }
+
+                $this->owner->notifyAdmin();
             }
+        }
+    }
+
+    public function notifyAdmin()
+    {
+        $member = $this->owner->Customer();
+
+        if (!$member->exists()) {
+            return;
+        }
+
+        $name = trim("{$member->FirstName} {$member->LastName}");
+        $citaId = $member->CitaID;
+        $recipients = explode(',', SiteConfig::current_site_config()->AccountAffairsRecipient);
+        $amount = $this->owner->SuccessPayment ? $this->owner->SuccessPayment->Amount : 'UNKNOWN';
+        $currency = $this->owner->SuccessPayment ? $this->owner->SuccessPayment->Currency : 'NZD';
+        foreach ($recipients as $recipient) {
+            $email = Email::create(
+              'noreply@cita.org.nz',
+              $recipient,
+              "[CITANZ] $name ($citaId) has paid."
+            );
+            $link = Environment::getEnv('SS_BASE_URL') . "admin/customers/Cita-eCommerce-Model-Customer/EditForm/field/Cita-eCommerce-Model-Customer/item/{$member->ID}/edit";
+
+            $body = <<<MSG
+<p>Hi admin</p>
+
+<p><a href="$link" target="_blank">$name ($citaId)</a> has paid {$amount} {$currency}.</p>
+
+<p>Kind regards<br />
+CITANZ</p>
+MSG;
+            $email->setBody($body);
+            $email->send();
         }
     }
 

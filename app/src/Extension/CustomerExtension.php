@@ -71,6 +71,7 @@ class CustomerExtension extends DataExtension
     public function updateCMSFields(FieldList $fields)
     {
         $fields->fieldByName('Root.Main.Degree')->setEmptyString('- select one -');
+
         return $fields;
     }
 
