@@ -41,7 +41,7 @@ class ExpiryReminder extends BuildTask
         $group = CustomerGroup::get()->filter(['Title:nocase' => 'Paid members'])->first();
 
         if ($group) {
-            $members = $group->Customers();
+            $members = $group->Customers()->filter(['NeverExpire' => false]);
 
             foreach ($members->toArray() as $member) {
                 $expiry = strtotime($member->Expiry);
