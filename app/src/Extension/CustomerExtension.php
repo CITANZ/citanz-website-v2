@@ -39,9 +39,21 @@ class CustomerExtension extends DataExtension
         'WechatID' => 'Varchar',
         'LinkedInLink' => 'Varchar(1024)',
         'Github' => 'Varchar',
+        'Expiry30Reminded' => 'Boolean', // 30 days prior to expiry
+        'Expiry7Reminded' => 'Boolean', // 7 days prior to expiry
+        'Expiry0Reminded' => 'Boolean', // on the expiry date
     ];
 
     private static $default_sort = ['CitaID' => 'ASC'];
+
+    private static $defaults = [
+        'Gender' => null,
+        'Degree' => null,
+        'TitleLevel' => null,
+        'Expiry30Reminded' => true,
+        'Expiry7Reminded' => true,
+        'Expiry0Reminded' => true,
+    ];
 
     private static $summary_fields = [
         'CitaID' => 'Member ID',

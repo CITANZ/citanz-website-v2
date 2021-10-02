@@ -55,8 +55,14 @@ class OrderExtension extends DataExtension
     {
         if ($order->ClassName === SubscriptionOrder::class) {
             if ($variant = $order->Variants()->first()) {
-                if ($order->Customer()->exists()) {
-                    $newExpiry = $order->Customer()->extendExpiry($variant->Duration);
+                $member = $order->Customer();
+                if ($member->exists()) {
+                    $newExpiry = $member->extendExpiry($variant->Duration);
+                    $member->update([
+                        'Expiry30Reminded' => false,
+                        'Expiry7Reminded' => false,
+                        'Expiry0Reminded' => false,
+                    ])->write();
                 }
             }
 
