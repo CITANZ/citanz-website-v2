@@ -8,6 +8,9 @@ export default {
   error(state) {
     return state.error
   },
+  scrolled(state) {
+    return state.scrolled
+  },
   site_data(state) {
     return state.site_data
   },

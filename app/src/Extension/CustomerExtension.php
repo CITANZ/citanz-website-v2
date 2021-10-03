@@ -162,8 +162,9 @@ class CustomerExtension extends DataExtension
         $config     =   SiteConfig::current_site_config()->MailChimpMemberConfig;
         $endpoint   =   $config['endpoint'] . '/' . $this->owner->Email . '/tags';
         $key        =   $config['api_key'];
+        $expiry = is_int($this->owner->Expiry) ? $this->owner->Expiry : strtotime($this->owner->Expiry);
 
-        $isPaid     = strtotime($this->owner->Expiry) > time() || $this->owner->NeverExpire;
+        $isPaid     = $expiry > time() || $this->owner->NeverExpire;
 
         try {
             $client     =   new Client();

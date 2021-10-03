@@ -16,3 +16,16 @@ a {
 .help {
   font-size: 14px !important;
 }
+
+.v-main {
+  transition: all ease-out 0.3s;
+  @include media-breakpoint-up(sm) {
+    padding-top: 84px !important;
+  }
+}
+
+.v-app-bar.v-app-bar--is-scrolled + .v-main {
+  @include media-breakpoint-up(sm) {
+    padding-top: 72px !important;
+  }
+}

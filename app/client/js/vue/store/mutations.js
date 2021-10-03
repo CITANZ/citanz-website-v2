@@ -21,6 +21,9 @@ export default {
       state.showSigninForm = !state.showSigninForm
     }
   },
+  SET_SCROLLED(state, status) {
+    state.scrolled = status
+  },
   SET_ACCESS_TOKEN(state, token) {
     state.access_token = token
   },

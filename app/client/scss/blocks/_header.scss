@@ -1,9 +1,31 @@
+.v-sheet.v-app-bar.v-toolbar:not(.v-sheet--outlined) {
+  box-shadow: 0 0 2px rgb(0 8 15 / 20%);
+}
+
 .v-app-bar {
+  height: 56px !important;
+
+  @include media-breakpoint-up(sm) {
+    height: 84px !important;
+  }
+
+  transition: all ease-out 0.3s;
   .v-toolbar__content {
     display: block;
     padding: 0;
+    height: 100% !important;
     .container {
       position: relative;
+      height: 100%;
+      .d-flex.align-center {
+        height: 100%;
+      }
+
+      @include media-breakpoint-up(sm) {
+        padding-top: 0;
+        padding-bottom: 0;
+      }
+
       .v-toolbar__menu {
         @include media-breakpoint-down(xs) {
           opacity: 0;
@@ -29,6 +51,92 @@
           }
         }
       }
+    }
+
+    .v-btn--icon {
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.25;
+      letter-spacing: .5px;
+      color: #2f3133;
+      font-family: Montserrat,sans-serif;
+      position: relative;
+
+      span {
+        &.v-btn__content {
+          opacity: 1;
+        }
+      }
+    }
+
+    .v-toolbar__items {
+      position: relative;
+      height: 48px;
+      @include media-breakpoint-up(sm) {
+        height: 100%;
+      }
+
+      .v-btn {
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 1.25;
+        letter-spacing: .5px;
+        color: #2f3133;
+        font-family: Montserrat,sans-serif;
+        position: relative;
+        text-transform: none;
+
+        span {
+          &.v-btn__content {
+            opacity: 1;
+          }
+        }
+
+        @include media-breakpoint-up(sm) {
+          padding: 0 32px;
+        }
+      }
+
+      &::after {
+        position: absolute;
+        content: '';
+        display: block;
+        background-color: #ee6445;
+        height: 2px;
+        bottom: 0;
+        left: var(--navbarIndicatorXPos);
+        width: var(--navbarIndicatorWidth);
+        opacity: var(--navbarIndicatorOpacity);
+      }
+
+
+      &:not(.animative) {
+        .v-btn.is-active {
+          &::after {
+            position: absolute;
+            content: '';
+            display: block;
+            background-color: #ee6445;
+            height: 2px;
+            bottom: 0;
+            left: var(--navbarIndicatorXPos);
+            width: calc(100% - var(--navbarIndicatorXPos) * 2);
+            opacity: 1;
+          }
+        }
+      }
+
+      &.animative {
+        &::after {
+          transition: all ease-out 0.3s;
+        }
+      }
+    }
+  }
+
+  &.v-app-bar--is-scrolled {
+    @include media-breakpoint-up(sm) {
+      height: 72px !important;
     }
   }
 }

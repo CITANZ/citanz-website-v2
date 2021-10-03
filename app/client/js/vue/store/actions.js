@@ -129,5 +129,8 @@ export default {
         commit('SET_SITE_DATA', error.response.data)
       }
     })
-  }
+  },
+  setScrolled({ commit }, status) {
+    commit('SET_SCROLLED', status)
+  },
 }

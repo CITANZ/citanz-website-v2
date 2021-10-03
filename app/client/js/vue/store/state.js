@@ -14,4 +14,5 @@ export default {
   skipFetchOnce: false,
   width: 320,
   memberMenuShown: false,
+  scrolled: false,
 }
