@@ -68,6 +68,7 @@ class SignupPageController extends PageController
 
         $customer->write();
         $customer->SendVerificationEmail();
+        $customer->syncToMailchimp();
 
         return [
             'message' => 'Your account has been created. Please check your email for the verification link.',

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Web\API;
+
 use Leochenftw\Restful\RestfulController;
 use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\Core\Config\Config;

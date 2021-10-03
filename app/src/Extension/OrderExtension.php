@@ -58,15 +58,36 @@ class OrderExtension extends DataExtension
     public function doPaymentSuccessAction(&$order)
     {
         if ($order->ClassName === SubscriptionOrder::class) {
+            $member = $order->Customer();
             if ($variant = $order->Variants()->first()) {
-                $member = $order->Customer();
                 if ($member->exists()) {
                     $newExpiry = $member->extendExpiry($variant->Duration);
+                    $citaId = $member->CitaID;
+
+                    if (empty($citaId)) {
+                        if ($latest = Customer::get()->sort('CitaID', 'DESC')->first()) {
+                            $fullID = explode('-', $latest->CitaID);
+                            if (count($fullID) > 1) {
+                                $id = (int) $fullID[1];
+                                $id++;
+                                $citaId = 'CITANZ-' . str_pad($id, 4, "0", STR_PAD_LEFT);
+                            }
+                        }
+                    }
+
                     $member->update([
+                        'CitaID' => $citaId,
                         'Expiry30Reminded' => false,
                         'Expiry7Reminded' => false,
                         'Expiry0Reminded' => false,
                     ])->write();
+
+                    if ($paidMemberGroup = CustomerGroup::get()->filter(['Title:nocase' => 'Paid members'])->first()) {
+                        $paidMemberGroup->Customers()->add($order->CustomerID);
+                    }
+
+                    $member->updateMailchimpPaidTag();
+                    $this->owner->notifyAdmin();
                 }
             }
 
@@ -77,27 +98,6 @@ class OrderExtension extends DataExtension
 
             foreach ($order->Variants() as $variant) {
                 $order->Variants()->add($variant->ID, ['Delivered' => true]);
-            }
-
-            if ($order->Customer()->exists()) {
-                if ($paidMemberGroup = CustomerGroup::get()->filter(['Title:nocase' => 'Paid members'])->first()) {
-                    if (empty($order->Customer()->CitaID)) {
-                        if ($latest = Customer::get()->sort('CitaID', 'DESC')->first()) {
-                            $fullID = explode('-', $latest->CitaID);
-                            if (count($fullID) > 1) {
-                                $id = (int) $fullID[1];
-                                $id++;
-                                $order->Customer()->update([
-                                    'CitaID' => 'CITANZ-' . str_pad($id, 4, "0", STR_PAD_LEFT),
-                                ])->write();
-                            }
-                        }
-                    }
-
-                    $paidMemberGroup->Customers()->add($order->CustomerID);
-                }
-
-                $this->owner->notifyAdmin();
             }
         }
     }

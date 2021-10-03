@@ -41,7 +41,11 @@ class ExpiryReminder extends BuildTask
         $group = CustomerGroup::get()->filter(['Title:nocase' => 'Paid members'])->first();
 
         if ($group) {
-            $members = $group->Customers()->filter(['NeverExpire' => false]);
+            $members = $group->Customers()->filter([
+              'NeverExpire' => false,
+              'Expiry:LessThanOrEqual' => strtotime(date('Y-m-d', time()) . ' +31 days'),
+              'Expiry:GreaterThanOrEqual' => time(),
+            ]);
 
             foreach ($members->toArray() as $member) {
                 $expiry = strtotime($member->Expiry);
@@ -56,6 +60,7 @@ class ExpiryReminder extends BuildTask
                         $this->sendExpiryReminder($member, 7);
                     } elseif (!$member->Expiry0Reminded){
                         $this->sendExpiredNotice($member);
+                        $member->updateMailchimpPaidTag();
                         echo $member->FirstName . "'s membership has expired";
                     } else {
                         echo $member->FirstName . ' expired and reminded. ignore';

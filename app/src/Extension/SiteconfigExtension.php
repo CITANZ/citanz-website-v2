@@ -40,6 +40,7 @@ class SiteConfigExtension extends DataExtension
         'SubscriptionContent'   =>  'Text',
         'MailchimpEndpoint'     =>  'Varchar(128)',
         'MailchimpListID'       =>  'Varchar(32)',
+        'MailchimpAudienceID'   =>  'Varchar(32)',
         'MailchimpAPIKey'       =>  'Varchar(256)',
         'MailchimpURL'          =>  'Varchar(256)',
         'ShowNotification'      =>  'Boolean',
@@ -60,6 +61,15 @@ class SiteConfigExtension extends DataExtension
     {
         return [
             'endpoint'      =>  rtrim($this->owner->MailchimpEndpoint, '/') . '/' . $this->owner->MailchimpListID . '/members',
+            'api_key'       =>  $this->owner->MailchimpAPIKey,
+            'fallback_url'  =>  $this->owner->MailchimpURL
+        ];
+    }
+
+    public function getMailChimpMemberConfig()
+    {
+        return [
+            'endpoint'      =>  rtrim($this->owner->MailchimpEndpoint, '/') . '/' . $this->owner->MailchimpAudienceID . '/members',
             'api_key'       =>  $this->owner->MailchimpAPIKey,
             'fallback_url'  =>  $this->owner->MailchimpURL
         ];
@@ -239,6 +249,7 @@ class SiteConfigExtension extends DataExtension
                 TextareaField::create('SubscriptionContent', 'Content'),
                 TextField::create('MailchimpEndpoint', 'Mailchimp endpoint'),
                 TextField::create('MailchimpListID', 'Mailchimp subscriber list ID'),
+                TextField::create('MailchimpAudienceID', 'Mailchiimp member list ID'),
                 TextField::create('MailchimpAPIKey', 'Mailchimp API key'),
                 TextField::create(
                     'MailchimpURL',

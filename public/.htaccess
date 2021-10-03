@@ -1,5 +1,18 @@
 ### SILVERSTRIPE START ###
 
+<IfModule mod_headers.c>
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Content-Type-Options "nosniff"
+
+    <If "%{HTTPS} == 'on' || %{HTTP:X-Forwarded-Protocol} == 'https' || %{HTTP:X-Forwarded-Proto} == 'https'">
+        Header always edit Set-Cookie (.*) "$1; Secure"
+        Header set Strict-Transport-Security "includeSubDomains; preload"
+    </If>
+
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set X-Frame-Options "SAMEORIGIN"
+</IfModule>
+
 # Deny access to templates (but allow from localhost)
 <Files *.ss>
     Order deny,allow
@@ -24,6 +37,9 @@ ErrorDocument 404 /assets/error-404.html
 ErrorDocument 500 /assets/error-500.html
 
 <IfModule mod_rewrite.c>
+    # Redirect to the proper domain
+    RewriteCond %{HTTP_HOST} ^member\.cita\.org\.nz [NC]
+    RewriteRule ^(.*)$ https://www.cita.org.nz/$1 [R=301,L]
 
     # Turn off index.php handling requests to the homepage fixes issue in apache >=2.4
     <IfModule mod_dir.c>

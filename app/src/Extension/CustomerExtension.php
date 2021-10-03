@@ -2,6 +2,7 @@
 
 namespace App\Web\Extension;
 
+use SilverStripe\Dev\Debug;
 use SilverStripe\Assets\Image;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\TextareaField;
@@ -16,7 +17,9 @@ use SilverStripe\ORM\DataExtension;
 use SilverStripe\Forms\LiteralField;
 use Leochenftw\Grid;
 use App\Web\Model\StudentDiscountApplication;
-use Page;
+use SilverStripe\SiteConfig\SiteConfig;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 
 /**
  * @file SiteConfigExtension
@@ -71,7 +74,6 @@ class CustomerExtension extends DataExtension
     public function updateCMSFields(FieldList $fields)
     {
         $fields->fieldByName('Root.Main.Degree')->setEmptyString('- select one -');
-
         return $fields;
     }
 
@@ -121,5 +123,71 @@ class CustomerExtension extends DataExtension
     public function isRealStudent()
     {
         return $this->owner->Groups()->filter(['Title:nocase' => 'student members'])->exists();
+    }
+
+    public function syncToMailchimp()
+    {
+        $config     =   SiteConfig::current_site_config()->MailChimpMemberConfig;
+        $endpoint   =   $config['endpoint'];
+        $key        =   $config['api_key'];
+
+        try {
+            $client     =   new Client();
+            $response   =   $client->request(
+                'POST',
+                $endpoint,
+                [
+                    'headers'   =>  [
+                        'Authorization' => "apikey {$key}"
+                    ],
+                    'json'   =>  [
+                        'email_address' =>  $this->owner->Email,
+                        'status'        =>  'subscribed',
+                        'merge_fields'  =>  [
+                            "FNAME" =>  $this->owner->FirstName,
+                            "LNAME" =>  $this->owner->LastName,
+                        ]
+                    ]
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (ClientException $e) {
+            return json_decode($e->getResponse()->getBody()->getContents());
+        }
+    }
+
+    public function updateMailchimpPaidTag()
+    {
+        $config     =   SiteConfig::current_site_config()->MailChimpMemberConfig;
+        $endpoint   =   $config['endpoint'] . '/' . $this->owner->Email . '/tags';
+        $key        =   $config['api_key'];
+
+        $isPaid     = strtotime($this->owner->Expiry) > time() || $this->owner->NeverExpire;
+
+        try {
+            $client     =   new Client();
+            $response   =   $client->request(
+                'POST',
+                $endpoint,
+                [
+                    'headers'   =>  [
+                        'Authorization' => "apikey {$key}"
+                    ],
+                    'json' => [
+                        'tags' => [
+                            [
+                                'name' => 'Paid members',
+                                'status' => $isPaid ? 'active' : 'inactive',
+                            ]
+                        ],
+                    ]
+                ]
+            );
+
+            return json_decode($response->getBody()->getContents());
+        } catch (ClientException $e) {
+            return json_decode($e->getResponse()->getBody()->getContents());
+        }
     }
 }
