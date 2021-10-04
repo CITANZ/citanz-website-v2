@@ -151,7 +151,7 @@ class Member extends RestfulController
         }
 
         if (!$this->user->Addresses()->exists() || empty($this->user->Addresses()->first()->Address)) {
-            return $this->httpError(400, 'Cannot detect address');
+            return $this->httpError(400, 'Invalid address! (I bet you input an email address eh?)');
         }
 
         $vid = Convert::raw2sql($this->request->postVar('id'));

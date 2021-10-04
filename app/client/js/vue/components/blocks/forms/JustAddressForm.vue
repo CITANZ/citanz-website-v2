@@ -9,6 +9,7 @@
     <v-card-title>
       <h2 class="text-h6">Billing Address</h2>
     </v-card-title>
+    <v-card-subtitle>Not email address!</v-card-subtitle>
     <v-card-text class="pb-0">
       <vuetify-google-autocomplete
         class="pt-0"
@@ -39,6 +40,7 @@ export default {
       region: null,
       country: null,
       postcode: null,
+      inputError: null,
     }
   },
   computed: {

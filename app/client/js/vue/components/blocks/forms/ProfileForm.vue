@@ -423,6 +423,8 @@ export default {
       this.postcode = this.originalData.address.postcode
       this.isStudent = this.originalData.isStudent
       this.organisation = this.originalData.organisation
+      this.degree = this.originalData.degree
+      this.major = this.originalData.major
       this.titleLevel = this.originalData.titleLevel
       this.jobCategory = this.originalData.jobCategory
       this.wechatID = this.originalData.wechatID

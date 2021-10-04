@@ -169,6 +169,7 @@ export default {
       if (nv) {
         window.addEventListener('keydown', this.keydownHandler)
       } else {
+        this.processing = false
         window.removeEventListener('keydown', this.keydownHandler)
       }
     },
