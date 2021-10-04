@@ -54,7 +54,7 @@ class StudentDiscountApplication extends DataObject implements \JsonSerializable
             'StudentIDFile',
         ]);
 
-        $imageSrc = $this->StudentIDFile()->exists() ? $this->StudentIDFile()->URL : null;
+        $imageSrc = $this->StudentIDFile()->exists() ? $this->StudentIDFile()->FillMax(1024, 1024)->URL : null;
 
         $fields->addFieldsToTab(
           'Root.Main',
@@ -71,7 +71,7 @@ class StudentDiscountApplication extends DataObject implements \JsonSerializable
                   'CustomerEmail',
                   'Email: ' . ($this->Customer()->exists() ? $this->Customer()->Email : 'UNKNOWN EMAIL')
               ),
-              LiteralField::create('Image', $imageSrc ? ('<p>Student ID:</p><p><img src="' . $imageSrc . '" /></p>') : 'NO IMAGE')
+              LiteralField::create('Image', $imageSrc ? ('<p>Student ID:</p><p><img style="max-width: 100%; height: auto;" src="' . $imageSrc . '" /></p>') : 'NO IMAGE')
           ]
         );
         return $fields;
@@ -206,7 +206,7 @@ MSG;
 
     private function notifyCustomer($customer)
     {
-        $email = Email::create('noreply@cita.org.nz', $customer->Email, '[CITANZ] New student account application received');
+        $email = Email::create('noreply@cita.org.nz', $customer->Email, '[CITANZ] Student account application has been ' . strtolower($this->Decision));
         $body = <<<MSG
   <p>Hi {$customer->FirstName}</p>
 

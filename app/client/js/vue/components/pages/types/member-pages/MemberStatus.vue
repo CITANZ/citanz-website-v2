@@ -193,6 +193,11 @@ export default {
         return
       }
 
+      if (!this.$refs.pond.getFiles().length) {
+        alert('Please provide the evidence of your student ID!')
+        return
+      }
+
       this.busy = true
       this.post({
         path: '/api/v/1/sd-application',
@@ -222,7 +227,6 @@ export default {
       this.doSubscription(this.pendingVariantID)
     },
     loadSectionData() {
-      console.log('huh?')
       if (!this.user) {
         this.$router.replace('/member')
         return
