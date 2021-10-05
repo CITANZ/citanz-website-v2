@@ -2,6 +2,7 @@
 
 namespace App\Web\Admin;
 
+use SilverStripe\Dev\Debug;
 use SilverStripe\Forms\GridField\GridFieldDetailForm_ItemRequest;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\FormAction;
@@ -19,8 +20,12 @@ class StudentApplicationGridFieldDetailForm_ItemRequest extends GridFieldDetailF
 
         if ($this->record->exists()) {
             $formActions    =   FieldList::create();
-            $formActions->push($this->create_button('doApprove', 'Approve', 'btn-primary'));
-            $formActions->push($this->create_button('doReject', 'Reject', 'btn-outline-danger btn-hide-outline'));
+            if (!$this->record->Rejected && !$this->record->Approved) {
+                $formActions->push($this->create_button('doApprove', 'Approve', 'btn-primary'));
+                if (empty($this->record->ExpiryDate)) {
+                    $formActions->push($this->create_button('doReject', 'Reject', 'btn-outline-danger btn-hide-outline'));
+                }
+            }
         } else {
             $formActions    =   $form->Actions();
         }
@@ -44,9 +49,20 @@ class StudentApplicationGridFieldDetailForm_ItemRequest extends GridFieldDetailF
 
     public function doApprove($data, $form)
     {
+        if (empty($data['ExpiryDate'])) {
+            $form->sessionMessage('Please enter the expiry date!', 'bad', ValidationResult::CAST_HTML);
+            return $this->edit(Controller::curr()->getRequest());
+        }
+
+        if (strtotime($data['ExpiryDate']) <= time()) {
+            $form->sessionMessage('It\'s already expired!', 'bad', ValidationResult::CAST_HTML);
+            return $this->edit(Controller::curr()->getRequest());
+        }
+
         $form->sessionMessage('Application approved', 'good', ValidationResult::CAST_HTML);
 
         if ($this->gridField->getList()->byId($this->record->ID)) {
+            $this->record->update(['ExpiryDate' => $data['ExpiryDate']])->write();
             $this->record->approveApplication();
             return $this->edit(Controller::curr()->getRequest());
         }

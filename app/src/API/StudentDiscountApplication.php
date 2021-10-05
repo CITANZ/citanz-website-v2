@@ -89,7 +89,7 @@ class StudentDiscountApplication extends RestfulController
         $image->setFromLocalFile($rawPhoto['tmp_name'], $this->generateRandomFileName($rawPhoto['name']));
         $image->ParentID = $folder->ID;
         $image->Title = implode('.', $titles);
-        $image->write();
+        $image->writeToStage('Stage');
 
         AssetAdmin::create()->generateThumbnails($image);
 

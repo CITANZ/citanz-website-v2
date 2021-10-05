@@ -2,6 +2,8 @@
 
 namespace App\Web\Model;
 
+use SilverStripe\Security\Member;
+use SilverStripe\Dev\Debug;
 use SilverStripe\Control\Director;
 use SilverStripe\SiteConfig\SiteConfig;
 use SilverStripe\Assets\Image;
@@ -23,6 +25,7 @@ class StudentDiscountApplication extends DataObject implements \JsonSerializable
         'Approved' => 'Boolean',
         'Rejected' => 'Boolean',
         'EmailSent' => 'Boolean',
+        'ExpiryDate' => 'Date',
     ];
 
     private static $has_one = [
@@ -35,10 +38,15 @@ class StudentDiscountApplication extends DataObject implements \JsonSerializable
         'Title' => 'Customer',
         'Customer.Email' => 'Email',
         'Decision' => 'Approved?',
+        'ExpiryDate' => 'Expiry date',
     ];
 
     private static $searchable_fields = [
         'Customer.FirstName',
+    ];
+
+    private static $cascade_deletes = [
+        'StudentIDFile',
     ];
 
     private static $default_sort = ['Created' => 'DESC'];
@@ -46,12 +54,19 @@ class StudentDiscountApplication extends DataObject implements \JsonSerializable
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
+        $expiryField = $fields->fieldByName('Root.Main.ExpiryDate');
+
+        if (!empty($this->ExpiryDate)) {
+            $expiryField = $expiryField->performReadonlyTransformation();
+        }
+
         $fields->removeByName([
             'CustomerID',
             'Approved',
             'Rejected',
             'EmailSent',
             'StudentIDFile',
+            'ExpiryDate',
         ]);
 
         $imageSrc = $this->StudentIDFile()->exists() ? $this->StudentIDFile()->FillMax(1024, 1024)->URL : null;
@@ -71,9 +86,17 @@ class StudentDiscountApplication extends DataObject implements \JsonSerializable
                   'CustomerEmail',
                   'Email: ' . ($this->Customer()->exists() ? $this->Customer()->Email : 'UNKNOWN EMAIL')
               ),
+              $expiryField,
               LiteralField::create('Image', $imageSrc ? ('<p>Student ID:</p><p><img style="max-width: 100%; height: auto;" src="' . $imageSrc . '" /></p>') : 'NO IMAGE')
           ]
         );
+
+        if ($this->Rejected) {
+            $fields->removeByName([
+                'ExpiryDate'
+            ]);
+        }
+
         return $fields;
     }
 
@@ -90,17 +113,10 @@ class StudentDiscountApplication extends DataObject implements \JsonSerializable
         return 'Pending approval';
     }
 
-    public function canEdit($member = null)
-    {
-        if (!$member) {
-            return false;
-        }
-
-        return $member->isDefaultAdmin();
-    }
-
     public function canDelete($member = null)
     {
+        $member = $member ?? Member::currentUser();
+
         if (!$member) {
             return false;
         }
