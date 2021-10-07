@@ -22,6 +22,7 @@ use App\Web\Model\StudentDiscountApplication as Application;
 use SilverStripe\AssetAdmin\Controller\AssetAdmin;
 use SilverStripe\Assets\Folder;
 use SilverStripe\Assets\Image;
+use diversen\imageRotate;
 
 class StudentDiscountApplication extends RestfulController
 {
@@ -51,16 +52,29 @@ class StudentDiscountApplication extends RestfulController
             return $this->httpError(401, 'Unauthorised');
         }
 
+        $image = $this->attach($request);
+
+        if (!$image) {
+            return $this->httpError(400, 'Please submit your student ID photo!');
+        }
+
         $this->application = $this->user->StudentDiscountApplications()->filter(['Approved' => false, 'Rejected' => false])->first();
 
         if (!$this->application) {
-            $this->application = Application::create()->update(['CustomerID' => $this->user->ID]);
-            $this->application->write();
+            $this->application = Application::create()->update([
+                'CustomerID' => $this->user->ID,
+                'StudentIDFileID' => $image->ID,
+            ]);
+
+        } elseif ($this->application->StudentIDFile()->exists()) {
+            $this->application->StudentIDFile()->deleteFromStage('Stage');
+            $this->application->StudentIDFile()->deleteFromStage('Live');
+            $this->application->update([
+                'StudentIDFileID' => $image->ID,
+            ]);
         }
 
-        if ($action && $this->hasMethod($action)) {
-            return $this->$action($request);
-        }
+        $this->application->write();
 
         return [
             'user' => $this->user,
@@ -68,7 +82,7 @@ class StudentDiscountApplication extends RestfulController
         ];
     }
 
-    public function attach(&$request)
+    private function attach(&$request)
     {
         $rawPhoto = $request->postVar('studentIDPhoto');
 
@@ -79,6 +93,9 @@ class StudentDiscountApplication extends RestfulController
         if ($rawPhoto['error']) {
             return $this->httpError(400, $rawPhoto['error']);
         }
+
+        $rotator = new imageRotate();
+        $rotator->fixOrientation($rawPhoto['tmp_name']);
 
         $folder = Folder::find_or_make('customers/' . $this->user->GUID);
 
@@ -93,19 +110,7 @@ class StudentDiscountApplication extends RestfulController
 
         AssetAdmin::create()->generateThumbnails($image);
 
-        if ($this->application->StudentIDFile()->exists()) {
-            $this->application->StudentIDFile()->deleteFromStage('Stage');
-            $this->application->StudentIDFile()->deleteFromStage('Live');
-        }
-
-        $this->application->update([
-            'StudentIDFileID' => $image->ID,
-        ])->write();
-
-        return [
-            'user' => $this->user,
-            'application' => $this->application,
-        ];
+        return $image;
     }
 
     private function generateRandomFileName($filename)

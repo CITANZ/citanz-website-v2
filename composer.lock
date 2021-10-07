@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fbca16052f224396b925024c97c25aeb",
+    "content-hash": "88d34a7a91e4144ba90defb59c4e8ff0",
     "packages": [
         {
             "name": "asyncphp/doorman",
@@ -956,6 +956,57 @@
                 "source": "https://github.com/dhensby/silverstripe-masquerade/tree/v0.2.1"
             },
             "time": "2020-03-29T23:05:58+00:00"
+        },
+        {
+            "name": "diversen/image-auto-rotate",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/diversen/image-auto-rotate.git",
+                "reference": "3ad5982408fc8d1028032f4069915740f820580b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/diversen/image-auto-rotate/zipball/3ad5982408fc8d1028032f4069915740f820580b",
+                "reference": "3ad5982408fc8d1028032f4069915740f820580b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "diversen\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dennis Iversen",
+                    "email": "dennis.iversen@gmail.com"
+                }
+            ],
+            "description": "Auto rotate image to correct position from exif",
+            "homepage": "https://github.com/diversen/image-auto-rotate",
+            "keywords": [
+                "gd",
+                "image",
+                "rotate"
+            ],
+            "support": {
+                "issues": "https://github.com/diversen/image-auto-rotate/issues",
+                "source": "https://github.com/diversen/image-auto-rotate/tree/master"
+            },
+            "time": "2016-06-13T09:38:21+00:00"
         },
         {
             "name": "dynamic/silverstripe-country-dropdown-field",

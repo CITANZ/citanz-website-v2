@@ -26,6 +26,7 @@ class StudentDiscountApplication extends DataObject implements \JsonSerializable
         'Rejected' => 'Boolean',
         'EmailSent' => 'Boolean',
         'ExpiryDate' => 'Date',
+        'RejectReason' => 'Text',
     ];
 
     private static $has_one = [
@@ -55,9 +56,14 @@ class StudentDiscountApplication extends DataObject implements \JsonSerializable
     {
         $fields = parent::getCMSFields();
         $expiryField = $fields->fieldByName('Root.Main.ExpiryDate');
+        $rejectField = $fields->fieldByName('Root.Main.RejectReason');
 
-        if (!empty($this->ExpiryDate)) {
+        if ($this->Approved) {
             $expiryField = $expiryField->performReadonlyTransformation();
+        }
+
+        if ($this->Rejected) {
+            $rejectField = $rejectField->performReadonlyTransformation();
         }
 
         $fields->removeByName([
@@ -67,6 +73,7 @@ class StudentDiscountApplication extends DataObject implements \JsonSerializable
             'EmailSent',
             'StudentIDFile',
             'ExpiryDate',
+            'RejectReason',
         ]);
 
         $imageSrc = $this->StudentIDFile()->exists() ? $this->StudentIDFile()->FillMax(1024, 1024)->URL : null;
@@ -87,6 +94,7 @@ class StudentDiscountApplication extends DataObject implements \JsonSerializable
                   'Email: ' . ($this->Customer()->exists() ? $this->Customer()->Email : 'UNKNOWN EMAIL')
               ),
               $expiryField,
+              $rejectField,
               LiteralField::create('Image', $imageSrc ? ('<p>Student ID:</p><p><img style="max-width: 100%; height: auto;" src="' . $imageSrc . '" /></p>') : 'NO IMAGE')
           ]
         );
@@ -94,6 +102,12 @@ class StudentDiscountApplication extends DataObject implements \JsonSerializable
         if ($this->Rejected) {
             $fields->removeByName([
                 'ExpiryDate'
+            ]);
+        }
+
+        if ($this->Approved) {
+            $fields->removeByName([
+                'RejectReason'
             ]);
         }
 
@@ -223,10 +237,15 @@ MSG;
     private function notifyCustomer($customer)
     {
         $email = Email::create('noreply@cita.org.nz', $customer->Email, '[CITANZ] Student account application has been ' . strtolower($this->Decision));
+        $reason = !empty($this->RejectReason) ? nl2br($this->RejectReason) : '';
+        $extraInfo = $this->Rejected ? "Reason: <br /><blockquote style=\"padding: 0.5rem 0 0.5rem 1rem; margin: 1rem 0 2rem; font-style: italic; border-left: 4px solid #ccc;\">{$reason}</blockquote>" : '';
+
         $body = <<<MSG
   <p>Hi {$customer->FirstName}</p>
 
   <p>We're writing to let you know that your CITANZ student discount application has been <strong>{$this->Decision}</strong>.</p>
+
+  {$extraInfo}
 
   <p>If you have any further questions, please contact us via <a href="mailto:info@cita.org.nz">info@cita.org.nz</a></p>
 

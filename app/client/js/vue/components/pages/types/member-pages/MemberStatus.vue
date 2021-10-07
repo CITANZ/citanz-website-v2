@@ -156,9 +156,8 @@ export default {
     },
     server() {
       return {
-        url: `/api/v/1/sd-application/`,
+        url: `/api/v/1/sd-application`,
         process: {
-          url: 'attach',
           headers: this.requestHeaders,
         }
       }
@@ -199,18 +198,9 @@ export default {
       }
 
       this.busy = true
-      this.post({
-        path: '/api/v/1/sd-application',
-        data: {},
-        headers: {
-          headers: this.requestHeaders,
-        },
-      }).then(resp => {
-        const user = resp.data.user
-        this.$refs.pond.processFiles().then(() => {
-          this.setUser(user)
-          this.busy = false
-        })
+      this.$refs.pond.processFiles().then(() => {
+        this.loadSectionData()
+        this.busy = false
       })
     },
     keydownHandler(e) {

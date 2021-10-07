@@ -72,9 +72,15 @@ class StudentApplicationGridFieldDetailForm_ItemRequest extends GridFieldDetailF
 
     public function doReject($data, $form)
     {
-        $form->sessionMessage('Application rejected', 'bad', ValidationResult::CAST_HTML);
+        if (empty($data['RejectReason'])) {
+            $form->sessionMessage('Please provide the reason for rejecting this application!', 'bad', ValidationResult::CAST_HTML);
+            return $this->edit(Controller::curr()->getRequest());
+        }
+
+        $form->sessionMessage('Application rejected', 'good', ValidationResult::CAST_HTML);
 
         if ($this->gridField->getList()->byId($this->record->ID)) {
+            $this->record->update(['RejectReason' => $data['RejectReason']])->write();
             $this->record->rejectApplication();
             return $this->edit(Controller::curr()->getRequest());
         }
