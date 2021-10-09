@@ -2,6 +2,7 @@
 
 namespace App\Web\Extension;
 
+use SilverStripe\Forms\HTMLEditor\HtmlEditorField;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\TextareaField;
 use SilverStripe\Forms\TextField;
@@ -47,6 +48,7 @@ class SiteConfigExtension extends DataExtension
         'NotificationContent'   =>  'Text',
         'StudentApplicationRecipient' => 'Text',
         'AccountAffairsRecipient' => 'Text',
+        'InductionKitContent' => 'HTMLText',
     ];
 
     /**
@@ -86,6 +88,7 @@ class SiteConfigExtension extends DataExtension
         'SponsorCTA'        =>  Link::class,
         'DonateCTA'         =>  Link::class,
         'NotificationLink'  =>  Link::class,
+        'InductionKit'   =>  File::class,
     ];
 
     public function getData()
@@ -186,6 +189,7 @@ class SiteConfigExtension extends DataExtension
     private static $owns = [
         'QRCode',
         'FooterLogo',
+        'InductionKit',
     ];
 
     /**
@@ -205,6 +209,20 @@ class SiteConfigExtension extends DataExtension
             'Root.Main',
             [
                 EmailField::create('Email', 'Contact Email')
+            ]
+        );
+
+        $fields->addFieldsToTab(
+            'Root.InductionKit',
+            [
+                HtmlEditorField::create(
+                    'InductionKitContent',
+                    'Content'
+                )->setDescription('Shortcodes: [MemberName], [MemberID]'),
+                UploadField::create(
+                    'InductionKit',
+                    'Attachment'
+                ),
             ]
         );
 

@@ -3,7 +3,8 @@
     "extra": {
         "expose": [
             "client/dist",
-            "client/js/cms"
+            "client/js/cms",
+            "client/images"
         ]
     }
 }

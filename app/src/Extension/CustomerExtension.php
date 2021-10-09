@@ -20,6 +20,10 @@ use App\Web\Model\StudentDiscountApplication;
 use SilverStripe\SiteConfig\SiteConfig;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use SilverStripe\Control\Email\Email;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Control\Director;
+use Leochenftw\Util;
 
 /**
  * @file SiteConfigExtension
@@ -190,5 +194,40 @@ class CustomerExtension extends DataExtension
         } catch (ClientException $e) {
             return json_decode($e->getResponse()->getBody()->getContents());
         }
+    }
+
+    public function sendMemberInductionKit()
+    {
+        $from       = Config::inst()->get(Email::class, 'noreply_email');
+        $to         = $this->owner->Email;
+        $subject    = 'Welcome to CITANZ - Your membership Induction Kit';
+        $siteconfig = SiteConfig::current_site_config();
+
+        $email = Email::create($from, $to, $subject);
+
+        if (Director::isLive()) {
+            $email->setBCC(Config::inst()->get(Email::class, 'admin_email'));
+        }
+
+        $email->setHTMLTemplate('Email\\InductionKit');
+
+        $content = Util::preprocess_content($siteconfig->InductionKitContent);
+
+        $content = str_replace('[MemberName]', $this->owner->FirstName, $content);
+        $content = str_replace('[MemberID]', $this->owner->CitaID, $content);
+
+        $email->setData([
+            'Content'    =>  $content,
+            'WebsiteURL' => Director::absoluteURL(Director::baseURL()),
+            'Year' => date('Y', time()),
+        ]);
+
+        $attachment = $siteconfig->InductionKit()->exists() ? $siteconfig->InductionKit() : null;
+
+        if (!empty($attachment)) {
+            $email->addAttachmentFromData($attachment->getString(), $attachment->Title, $attachment->getMimeType());
+        }
+
+        $email->send();
     }
 }

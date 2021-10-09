@@ -63,8 +63,10 @@ class OrderExtension extends DataExtension
                 if ($member->exists()) {
                     $newExpiry = $member->extendExpiry($variant->Duration);
                     $citaId = $member->CitaID;
+                    $isNew = false;
 
                     if (empty($citaId)) {
+                        $isNew = true;
                         if ($latest = Customer::get()->sort('CitaID', 'DESC')->first()) {
                             $fullID = explode('-', $latest->CitaID);
                             if (count($fullID) > 1) {
@@ -81,6 +83,10 @@ class OrderExtension extends DataExtension
                         'Expiry7Reminded' => false,
                         'Expiry0Reminded' => false,
                     ])->write();
+
+                    if ($isNew) {
+                        $member->sendMemberInductionKit();
+                    }
 
                     if ($paidMemberGroup = CustomerGroup::get()->filter(['Title:nocase' => 'Paid members'])->first()) {
                         $paidMemberGroup->Customers()->add($order->CustomerID);
