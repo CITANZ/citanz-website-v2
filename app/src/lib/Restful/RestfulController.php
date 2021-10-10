@@ -165,18 +165,28 @@ abstract class RestfulController extends Controller
         $default_origin     =   $this->config()->CORSOrigin;
         $allowed_origins    =   $this->config()->CORSOrigins;
 
-        if (in_array($this->request->getHeader('origin'), $allowed_origins)) {
+        if (in_array($this->request->getHeader('origin'), $allowed_origins ?? [])) {
             $response->addHeader('Access-Control-Allow-Origin', $this->request->getHeader('origin'));
-        } else {
+        } elseif (!empty($default_origin)) {
             $response->addHeader('Access-Control-Allow-Origin', $default_origin);
         }
 
-        $response->addHeader('Access-Control-Allow-Methods', $this->config()->CORSMethods);
-        $response->addHeader('Access-Control-Max-Age', $this->config()->CORSMaxAge);
-        $response->addHeader('Access-Control-Allow-Headers', $this->config()->CORSAllowHeaders);
+        if (!empty($this->config()->CORSMethods)) {
+            $response->addHeader('Access-Control-Allow-Methods', $this->config()->CORSMethods);
+        }
+
+        if (!empty($this->config()->CORSMaxAge)) {
+            $response->addHeader('Access-Control-Max-Age', $this->config()->CORSMaxAge);
+        }
+
+        if (!empty($this->config()->CORSAllowHeaders)) {
+            $response->addHeader('Access-Control-Allow-Headers', $this->config()->CORSAllowHeaders);
+        }
+
         if ($this->config()->CORSAllowCredentials) {
             $response->addHeader('Access-Control-Allow-Credentials', 'true');
         }
+
         return $response;
     }
 
