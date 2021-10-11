@@ -185,6 +185,9 @@ export default {
     window.removeEventListener('keydown', this.keydownHandler)
     this.loadSectionData()
   },
+  beforeDestroy() {
+    window.removeEventListener('keydown', this.keydownHandler)
+  },
   methods: {
     ...mapActions(['post', 'setStripeKey', 'setAccessToken']),
     doSubmit() {

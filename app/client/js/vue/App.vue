@@ -97,7 +97,7 @@ export default {
       }
     },
     updateAccessToken() {
-      if (!this.access_token) {
+      if (!this.access_token || !this.access_token.refresh_token) {
         this.$store.dispatch("setUser", null)
         return false
       }
