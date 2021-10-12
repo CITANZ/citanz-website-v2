@@ -15,3 +15,7 @@ Cita\eCommerce\Model\Order:
   extensions:
     - App\Web\Extension\OrderExtension
   no_send_invoice: true
+
+Cita\eCommerce\Admin\CustomerAdmin:
+  extensions:
+    - App\Web\Extension\CustomerAdminExtension

@@ -69,7 +69,7 @@ class TestInductionKit extends BuildTask
             }
 
             $customer->sendMemberInductionKit();
-            
+
             echo 'Induction Kit sent';
             echo PHP_EOL;
 
