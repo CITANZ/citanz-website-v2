@@ -63,6 +63,7 @@ class CustomerAdminExtension extends Extension
             $export = $config->getComponentByType(GridFieldExportButton::class);
             $export->setExportColumns([
                 'Order.CustomerReference' => 'Order#',
+                'Order.Customer.CitaID' => 'Member ID',
                 'Order.Customer.Title' => 'Member',
                 'Order.CommentText' => 'Comment',
                 'Money' => 'Amount',
@@ -84,6 +85,7 @@ class CustomerAdminExtension extends Extension
         $dataColumns = $config->getComponentByType(GridFieldDataColumns::class);
         $dataColumns->setDisplayFields([
             'Order.CustomerReference' => 'Order#',
+            'Order.Customer.CitaID' => 'Member ID',
             'Order.Customer.Title' => 'Member',
             'Order.CommentText' => 'Comment',
             'Money' => 'Amount',
