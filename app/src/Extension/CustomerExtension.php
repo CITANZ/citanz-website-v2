@@ -64,6 +64,8 @@ class CustomerExtension extends DataExtension
 
     private static $summary_fields = [
         'CitaID' => 'Member ID',
+        'Expiry' => 'Expiry date',
+        'LastSubscriptionPaymentDate' => 'Last Payment Date',
     ];
 
     private static $has_many = [
