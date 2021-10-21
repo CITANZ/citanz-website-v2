@@ -43,8 +43,8 @@ class ExpiryReminder extends BuildTask
         if ($group) {
             $members = $group->Customers()->filter([
               'NeverExpire' => false,
+              'Expiry:not' => null,
               'Expiry:LessThanOrEqual' => strtotime(date('Y-m-d', time()) . ' +31 days'),
-              'Expiry:GreaterThanOrEqual' => time(),
             ]);
 
             foreach ($members->toArray() as $member) {
@@ -54,13 +54,13 @@ class ExpiryReminder extends BuildTask
                 if ($expiry <= time()) {
                     if (!$member->Expiry30Reminded) {
                         echo $member->FirstName . "'s membership expiring in 30 days.";
-                        $this->sendExpiryReminder($member, 30);
+                        // $this->sendExpiryReminder($member, 30);
                     } elseif (!$member->Expiry7Reminded) {
                         echo $member->FirstName . "'s membership expiring in 7 days.";
-                        $this->sendExpiryReminder($member, 7);
+                        // $this->sendExpiryReminder($member, 7);
                     } elseif (!$member->Expiry0Reminded){
-                        $this->sendExpiredNotice($member);
-                        $member->updateMailchimpPaidTag();
+                        // $this->sendExpiredNotice($member);
+                        // $member->updateMailchimpPaidTag();
                         echo $member->FirstName . "'s membership has expired";
                     } else {
                         echo $member->FirstName . ' expired and reminded. ignore';
@@ -72,15 +72,15 @@ class ExpiryReminder extends BuildTask
                 if ($deadline <= time()) {
                     echo $member->FirstName . "'s removed from paid members";
                     echo PHP_EOL;
-                    $group->Customers()->remove($member);
-                    // once your membership is up, your student status is up too
-                    $studentGroup = CustomerGroup::get()->filter(['Title:nocase' => 'Student members'])->first();
-                    if ($studentGroup->Customers()->byID($member->ID)) {
-                        $studentGroup->Customers()->remove($member);
-                    }
-
-                    $this->sendMembershipTerminatedNotice($member);
-                    $this->notifyAdminMembershipEnded($member);
+                    // $group->Customers()->remove($member);
+                    // // once your membership is up, your student status is up too
+                    // $studentGroup = CustomerGroup::get()->filter(['Title:nocase' => 'Student members'])->first();
+                    // if ($studentGroup->Customers()->byID($member->ID)) {
+                    //     $studentGroup->Customers()->remove($member);
+                    // }
+                    //
+                    // $this->sendMembershipTerminatedNotice($member);
+                    // $this->notifyAdminMembershipEnded($member);
                 }
             }
         }
