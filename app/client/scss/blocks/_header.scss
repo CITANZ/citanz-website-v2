@@ -33,13 +33,16 @@
           transition: all 0.3s ease-out;
           border-top: 1px solid rgba(0, 0, 0, 0.05);
           position: absolute;
-          display: block !important;
+          display: flex !important;
           bottom: 0;
           transform: translateY(80%);
           left: 0;
           width: 100%;
           background-color: white;
           box-shadow: 0 8px 16px rgb(0 8 15 / 10%);
+          overflow: hidden;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
           .v-btn {
             padding: 18px 16px;
           }

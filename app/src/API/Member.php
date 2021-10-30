@@ -170,6 +170,12 @@ class Member extends RestfulController
             $cart->write();
             $session = $this->request->getSession();
             $session->set('subscription_cart_id', $cart->ID);
+        } else {
+            $cart->update([
+                'ShippingFirstname' => $this->user->FirstName,
+                'ShippingSurname' => $this->user->LastName,
+                'Email' => $this->user->Email,
+            ])->write();
         }
 
         return array_merge(

@@ -62,6 +62,13 @@ class CustomerExtension extends DataExtension
         'Expiry0Reminded' => true,
     ];
 
+    private static $searchable_fields = [
+        'CitaID',
+        'FirstName',
+        'LastName',
+        'Email',
+    ];
+
     private static $summary_fields = [
         'CitaID' => 'Member ID',
         'Expiry' => 'Expiry date',
