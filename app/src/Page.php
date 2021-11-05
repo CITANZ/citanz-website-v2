@@ -55,11 +55,13 @@ class Page extends SiteTree implements Flushable
             'URLSegment'
         );
 
-        $fields->addFieldToTab(
-            'Root.SEO',
-            $meta,
-            'OG'
-        );
+        if ($fields->fieldbyName('Root.SEO.OG')) {
+            $fields->addFieldToTab(
+                'Root.SEO',
+                $meta,
+                'OG'
+            );
+        }
 
         return $fields;
     }
@@ -127,6 +129,7 @@ class Page extends SiteTree implements Flushable
                 'active' => $item->isSection() || $item->isCurrent(),
                 'sub' => $this->getMenuItems($item->Children()),
                 'pagetype' => ClassInfo::shortName($item->ClassName),
+                'isExternal' => !empty($item->RedirectionType) ? $item->RedirectionType === 'External' : false,
             ];
         }
 

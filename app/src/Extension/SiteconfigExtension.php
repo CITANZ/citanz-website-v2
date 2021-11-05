@@ -176,6 +176,7 @@ class SiteConfigExtension extends DataExtension
             $menu[] =   [
                 'title'     =>  $item->MenuTitle,
                 'url'       =>  $link != '/' ? rtrim($link, '/') : '/',
+                'isExternal' => !empty($item->RedirectionType) ? $item->RedirectionType === 'External' : false,
             ];
         }
 

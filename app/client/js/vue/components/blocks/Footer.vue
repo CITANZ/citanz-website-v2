@@ -4,7 +4,7 @@
     <v-row class="mb-0">
       <v-col cols="12" sm="6" lg="4">
         <p class="mb-6">
-          <router-link to="/" class="d-block">
+          <router-link to="/" class="d-inline-block">
             <v-img width="155" :src="site_data.siteconfig.footer_logo.url" />
           </router-link>
         </p>
@@ -32,7 +32,12 @@
               v-for="(item, i) in site_data.siteconfig.menu"
               :key="`footer-menuitem-${i}`"
             >
-              <router-link :to="item.url">{{ item.title }}</router-link>
+              <component
+                :is="item.isExternal ? 'a' : 'router-link'"
+                :to="item.isExternal ? null : item.url"
+                :href="item.isExternal ? item.url : null"
+                :target="item.isExternal ? '_blank' : null"
+              >{{ item.title }}</component>
             </li>
           </ul>
         </div>

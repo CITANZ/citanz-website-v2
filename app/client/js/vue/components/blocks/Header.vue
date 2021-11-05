@@ -33,7 +33,9 @@
             v-for="navitem in site_nav"
             ref="navItems"
             :key="navitem.label"
-            :to="navitem.url"
+            :to="navitem.isExternal ? null : navitem.url"
+            :href="navitem.isExternal ? navitem.url : null"
+            :target="navitem.isExternal ? '_blank' : null"
             text
             plain
             :ripple="false"
