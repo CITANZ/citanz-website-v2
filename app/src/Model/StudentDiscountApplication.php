@@ -76,7 +76,7 @@ class StudentDiscountApplication extends DataObject implements \JsonSerializable
             'RejectReason',
         ]);
 
-        $imageSrc = $this->StudentIDFile()->exists() ? $this->StudentIDFile()->FillMax(1024, 1024)->URL : null;
+        $imageSrc = $this->StudentIDFile()->exists() ? $this->StudentIDFile()->FitMax(1024, 1024)->URL : null;
 
         $fields->addFieldsToTab(
           'Root.Main',
