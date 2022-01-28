@@ -27,6 +27,12 @@ trait OAuthTrait
 {
     public function authenticate()
     {
+        $ssRequest = $this->getRequest();
+
+        if (empty($ssRequest->getHeader('authorization')) && empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            return false;
+        }
+
         $accessTokenRepository = new AccessTokenRepository();
         $publicKeyPath = EncryptionCertificateService::getPublicKey();
 
@@ -34,8 +40,6 @@ trait OAuthTrait
             $accessTokenRepository,
             $publicKeyPath
         );
-
-        $ssRequest = $this->getRequest();
 
         // fixing an odd bug that REDIRECT_HTTP_AUTHORIZATION is not recognise as HTTP_AUTHORIZATION
         if (empty($ssRequest->getHeader('authorization')) && !empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {

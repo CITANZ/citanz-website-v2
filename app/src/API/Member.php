@@ -41,7 +41,7 @@ class Member extends RestfulController
 
     public function get($request)
     {
-        $this->user = $this->authenticate();
+      $this->user = $this->authenticate();
 
         if (!$this->user || $this->user instanceof HTTPResponse) {
             return $this->httpError(401, 'Unauthorised');

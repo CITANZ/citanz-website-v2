@@ -2,6 +2,7 @@
 
 namespace Leochenftw\Restful;
 
+use SilverStripe\Dev\Debug;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Config;
 use Exception;
@@ -112,9 +113,10 @@ abstract class RestfulController extends Controller
                 ]);
             }
         } catch(Exception $ex) {
+            $statusCode = $ex->getResponse()->getStatusCode();
             // an unexpected exception was caught
             $response->addHeader('Content-Type', $serializer->contentType());
-            $response->setStatusCode("500");
+            $response->setStatusCode($statusCode);
             $body = [
                 'message' => $ex->getMessage(),
                 'code' => $ex->getCode()
