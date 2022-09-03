@@ -38,6 +38,8 @@ class ExpiryReminder extends BuildTask
      */
     public function run($request)
     {
+        $isDry = (int) $request->getVar('dryrun') === 1;
+
         $group = CustomerGroup::get()->filter(['Title:nocase' => 'Paid members'])->first();
 
         if ($group) {
@@ -50,37 +52,47 @@ class ExpiryReminder extends BuildTask
             foreach ($members->toArray() as $member) {
                 $expiry = strtotime($member->Expiry);
                 $deadline = strtotime($member->Expiry . ' +30 days');
+                $earlyReminder30 = strtotime($member->Expiry . ' -30 days');
+                $earlyReminder7 = strtotime($member->Expiry . ' -7 days');
 
-                if ($expiry <= time()) {
-                    if (!$member->Expiry30Reminded) {
-                        echo $member->FirstName . "'s membership expiring in 30 days.";
+                if ($earlyReminder30 <= time() && !$member->Expiry30Reminded) {
+                    echo $member->FirstName . "'s membership expiring in 30 days." . PHP_EOL;
+                    if (!$isDry) {
                         $this->sendExpiryReminder($member, 30);
-                    } elseif (!$member->Expiry7Reminded) {
-                        echo $member->FirstName . "'s membership expiring in 7 days.";
+                    }
+                } elseif ($earlyReminder7 <= time() && !$member->Expiry7Reminded) {
+                    echo $member->FirstName . "'s membership expiring in 7 days." . PHP_EOL;
+                    if (!$isDry) {
                         $this->sendExpiryReminder($member, 7);
-                    } elseif (!$member->Expiry0Reminded){
+                    }
+                } elseif ($expiry <= time() && !$member->Expiry0Reminded){
+                    if (!$isDry) {
                         $this->sendExpiredNotice($member);
                         $member->updateMailchimpPaidTag();
-                        echo $member->FirstName . "'s membership has expired";
-                    } else {
-                        echo $member->FirstName . ' expired and reminded. ignore';
                     }
-
-                    echo PHP_EOL;
+                    echo $member->FirstName . "'s membership has expired" . PHP_EOL;
+                } elseif (
+                    $member->Expiry30Reminded
+                    && $member->Expiry7Reminded
+                    && $member->Expiry0Reminded
+                ) {
+                    echo $member->FirstName . " expired (" . date('Y-m-d', $expiry) . ") and reminded. ignore" . PHP_EOL;
                 }
 
                 if ($deadline <= time()) {
                     echo $member->FirstName . "'s removed from paid members";
                     echo PHP_EOL;
-                    $group->Customers()->remove($member);
-                    // once your membership is up, your student status is up too
-                    $studentGroup = CustomerGroup::get()->filter(['Title:nocase' => 'Student members'])->first();
-                    if ($studentGroup->Customers()->byID($member->ID)) {
-                        $studentGroup->Customers()->remove($member);
-                    }
+                    if (!$isDry) {
+                        $group->Customers()->remove($member);
+                        // once your membership is up, your student status is up too
+                        $studentGroup = CustomerGroup::get()->filter(['Title:nocase' => 'Student members'])->first();
+                        if ($studentGroup->Customers()->byID($member->ID)) {
+                            $studentGroup->Customers()->remove($member);
+                        }
 
-                    $this->sendMembershipTerminatedNotice($member);
-                    $this->notifyAdminMembershipEnded($member);
+                        $this->sendMembershipTerminatedNotice($member);
+                        $this->notifyAdminMembershipEnded($member);
+                    }
                 }
             }
         }

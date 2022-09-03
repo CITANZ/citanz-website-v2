@@ -67,13 +67,12 @@ class OrderExtension extends DataExtension
 
                     if (empty($citaId)) {
                         $isNew = true;
-                        if ($latest = Customer::get()->sort('CitaID', 'DESC')->first()) {
-                            $fullID = explode('-', $latest->CitaID);
-                            if (count($fullID) > 1) {
-                                $id = (int) $fullID[1];
-                                $id++;
-                                $citaId = 'CITANZ-' . str_pad($id, 4, "0", STR_PAD_LEFT);
-                            }
+                        $latest = Customer::get()->filter(['CitaID:StartsWith' => 'CITANZ'])->sort('CitaID', 'DESC')->first();
+                        $fullID = !$latest ? ['CITANZ', Customer::get()->count()] : explode('-', $latest->CitaID);
+                        if (count($fullID) > 1) {
+                            $id = (int) $fullID[1];
+                            $id++;
+                            $citaId = 'CITANZ-' . str_pad($id, 4, "0", STR_PAD_LEFT);
                         }
                     }
 
