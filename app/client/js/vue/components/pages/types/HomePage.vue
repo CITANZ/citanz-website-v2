@@ -173,6 +173,7 @@
           md="4"
           v-for="(testimonial, i) in sectionTestimonial"
           :key="`testimonial-${i}`"
+          class="testimonial"
         >
           <div class="typography" v-html="testimonial.content"></div>
           <v-row align="center">

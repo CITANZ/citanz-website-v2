@@ -10,5 +10,20 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .typography {
-
+  h1, h2, h3, h4, h5, h6,
+  .text-h1,
+  .text-h2,
+  .text-h3,
+  .text-h4,
+  .text-h5,
+  .text-h6,
+  table,
+  ul,
+  ol,
+  blockquote,
+  p {
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
 }

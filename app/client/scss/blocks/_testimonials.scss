@@ -1,0 +1,12 @@
+.testimonials {
+  .testimonial {
+    display: flex;
+    flex-direction: column;
+    .typography {
+      height: 100%;
+      &:not(:last-child) {
+        margin-bottom: 1rem;
+      }
+    }
+  }
+}

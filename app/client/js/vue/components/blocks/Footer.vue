@@ -72,7 +72,7 @@
       </v-col>
     </v-row>
     <p class="copyright mb-0">
-      Copyright © 2018 - {{ currentYear }} CITANZ, Designed by <a target="_blank" href="https://www.linkedin.com/in/jing-hu/" title="Jing's blog">Jing</a>
+      Copyright © 2018 - {{ currentYear }} CITANZ, Designed by <a target="_blank" href="https://www.jingux.design/" title="Jing's website">Jing</a>
       <span class="d-sr-only">, and built &amp; maintained by <a href="https://www.leochen.co.nz" target="_blank">Leo Chen</a></span>
     </p>
   </v-container>
