@@ -21,14 +21,14 @@
         </v-col>
         <v-col cols="12" sm="7">
           <div class="typography" v-html="site_data.home_data.content"></div>
-          <p class="text-vertical-center">
-            <span>Sponsored by</span>
+          <p class="text-vertical-center company-logos" v-if="site_data.home_data.sponsors && site_data.home_data.sponsors.length">
+            <span class="mr-2">Sponsored by</span>
             <a
               v-for="(sponsor, i) in site_data.home_data.sponsors"
               :key="`sponsor-${i}`"
               :href="sponsor.link.url"
               target="_blank"
-              class="d-inline-block"
+              class="d-inline-block company-logo"
             >
               <img class="d-block" :src="sponsor.logoRaw" :height="sponsor.classname == 'catalyst-cloud' ? 33 : null" :alt="`${sponsor.title}'s logo'`" />
             </a>
@@ -89,14 +89,14 @@
         >
           <h2>{{ tile.title }}</h2>
           <div class="typography" v-html="tile.content"></div>
-          <p class="text-vertical-center" v-if="tile.show_sponsor">
-            <span>Sponsored by</span>
+          <p class="text-vertical-center company-logos" v-if="tile.show_sponsor && site_data.home_data.sponsors && site_data.home_data.sponsors.length">
+            <span class="mr-2">Sponsored by</span>
             <a
               v-for="(sponsor, i) in site_data.home_data.sponsors"
               :key="`sponsor-${i}`"
               :href="sponsor.link.url"
               target="_blank"
-              class="d-inline-block"
+              class="d-inline-block company-logo"
             >
               <img class="d-block" :src="sponsor.logoRaw" :height="sponsor.classname == 'catalyst-cloud' ? 33 : null" :alt="`${sponsor.title}'s logo'`" />
             </a>

@@ -8,7 +8,7 @@
         <v-col cols="12" sm="6">
           <h2>{{ sectionWhyWeHere.title }}</h2>
           <div class="typography" v-html="sectionWhyWeHere.content"></div>
-          <div class="d-none d-sm-block about__from-companies">
+          <div class="d-none d-sm-block about__from-companies" v-if="sectionWhyWeHere.companies && sectionWhyWeHere.companies.length">
             <p class="h5">Our members are from</p>
             <p class="about__from-companies__items">
               <span
@@ -24,7 +24,7 @@
         </v-col>
         <v-col cols="12" sm="6">
           <p><v-img :src="sectionWhyWeHere.image.large" /></p>
-          <div class="d-sm-none about__from-companies">
+          <div class="d-sm-none about__from-companies" v-if="sectionWhyWeHere.companies && sectionWhyWeHere.companies.length">
             <p class="h5">Our members are from</p>
             <p class="about__from-companies__items">
               <span

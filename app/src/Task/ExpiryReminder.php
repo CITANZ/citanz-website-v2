@@ -8,6 +8,7 @@ use SilverStripe\Dev\BuildTask;
 use Cita\eCommerce\Model\CustomerGroup;
 use SilverStripe\Control\Email\Email;
 use SilverStripe\Core\Environment;
+use Cita\eCommerce\Model\Customer;
 
 class ExpiryReminder extends BuildTask
 {
@@ -39,6 +40,15 @@ class ExpiryReminder extends BuildTask
     public function run($request)
     {
         $isDry = (int) $request->getVar('dryrun') === 1;
+        $targetedMember = (int) $request->getVar('member');
+
+        if ($isDry && !empty($targetedMember)) {
+            $targetedMember = Customer::get()->byID($targetedMember);
+            $this->sendExpiryReminder($targetedMember, 30, true);
+            $this->sendExpiryReminder($targetedMember, 7, true);
+            $this->sendExpiredNotice($targetedMember);
+            return;
+        }
 
         $group = CustomerGroup::get()->filter(['Title:nocase' => 'Paid members'])->first();
 
@@ -127,9 +137,9 @@ MSG;
         }
     }
 
-    private function sendExpiryReminder($member, $days)
+    private function sendExpiryReminder($member, $days, $isDry = false)
     {
-        $email = Email::create('noreply@cita.org.nz', $member->Email, '[CITANZ] Membership has ended');
+        $email = Email::create('noreply@cita.org.nz', $member->Email, '[CITANZ] Membership is expiring in ' . $days . ' days');
         $link = Environment::getEnv('SS_BASE_URL') . 'member/membership';
 
         $body = <<<MSG
@@ -144,6 +154,10 @@ MSG;
   MSG;
         $email->setBody($body);
         $email->send();
+
+        if ($isDry) {
+            return;
+        }
 
         $field = "Expiry{$days}Reminded";
 
@@ -174,7 +188,7 @@ MSG;
         $email->send();
     }
 
-    private function sendExpiredNotice($member)
+    private function sendExpiredNotice($member, $isDry = false)
     {
         $email = Email::create('noreply@cita.org.nz', $member->Email, '[CITANZ] Membership has expired');
         $discountValidUntil = date('d/m/Y', strtotime($member->Expiry . ' +30 days'));
@@ -192,6 +206,10 @@ CITANZ</p>
 MSG;
         $email->setBody($body);
         $email->send();
+
+        if ($isDry) {
+            return;
+        }
 
         $member->Expiry0Reminded = true;
         $member->write();
