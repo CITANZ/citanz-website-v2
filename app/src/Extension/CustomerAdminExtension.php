@@ -27,6 +27,32 @@ class CustomerAdminExtension extends Extension
         Payment::class,
     ];
 
+    /**
+     * This will find out how many members have renewed this year
+     * SELECT
+     *
+     * FROM
+     *   Cita_eCommerce_Customer
+     * WHERE
+     *   ID
+     *     IN (
+     *         SELECT
+     *           DISTINCT o.CustomerID
+     *         FROM
+     *           Omnipay_Payment AS p
+     *         LEFT JOIN
+     *           Cita_eCommerce_Order AS o
+     *             ON p.OrderID = o.ID
+     *         WHERE
+     *           p.Status = 'Captured'
+     *           AND p.LastEdited > '2022-08-01'
+     *           AND p.MoneyAmount = 48
+     *     )
+     *
+     * This finds the current paid members
+     * SELECT * FROM Cita_eCommerce_Customer WHERE ID IN (SELECT `Cita_eCommerce_CustomerID` FROM `Cita_eCommerce_CustomerGroup_Customers` WHERE `Cita_eCommerce_CustomerGroupID` = 1)
+    */
+
     public function updateList(&$list)
     {
         if ($this->owner->modelClass == Payment::class) {

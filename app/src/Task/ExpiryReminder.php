@@ -41,6 +41,7 @@ class ExpiryReminder extends BuildTask
     {
         $isDry = (int) $request->getVar('dryrun') === 1;
         $targetedMember = (int) $request->getVar('member');
+        $messages = [];
 
         if ($isDry && !empty($targetedMember)) {
             $targetedMember = Customer::get()->byID($targetedMember);
@@ -66,11 +67,13 @@ class ExpiryReminder extends BuildTask
                 $earlyReminder7 = strtotime($member->Expiry . ' -7 days');
 
                 if ($earlyReminder30 <= time() && !$member->Expiry30Reminded) {
+                    $messages[] = $member->FirstName . "'s membership expiring in 30 days.";
                     echo $member->FirstName . "'s membership expiring in 30 days." . PHP_EOL;
                     if (!$isDry) {
                         $this->sendExpiryReminder($member, 30);
                     }
                 } elseif ($earlyReminder7 <= time() && !$member->Expiry7Reminded) {
+                    $messages[] = $member->FirstName . "'s membership expiring in 7 days.";
                     echo $member->FirstName . "'s membership expiring in 7 days." . PHP_EOL;
                     if (!$isDry) {
                         $this->sendExpiryReminder($member, 7);
@@ -80,18 +83,20 @@ class ExpiryReminder extends BuildTask
                         $this->sendExpiredNotice($member);
                         $member->updateMailchimpPaidTag();
                     }
+                    $messages[] = $member->FirstName . "'s membership has expired";
                     echo $member->FirstName . "'s membership has expired" . PHP_EOL;
                 } elseif (
                     $member->Expiry30Reminded
                     && $member->Expiry7Reminded
                     && $member->Expiry0Reminded
                 ) {
+                    $messages[] = $member->FirstName . " expired (" . date('Y-m-d', $expiry) . ") and reminded. ignore";
                     echo $member->FirstName . " expired (" . date('Y-m-d', $expiry) . ") and reminded. ignore" . PHP_EOL;
                 }
 
                 if ($deadline <= time()) {
-                    echo $member->FirstName . "'s removed from paid members";
-                    echo PHP_EOL;
+                    $messages[] = $member->FirstName . "'s removed from paid members";
+                    echo $member->FirstName . "'s removed from paid members" . PHP_EOL;
                     if (!$isDry) {
                         $group->Customers()->remove($member);
                         // once your membership is up, your student status is up too
@@ -106,6 +111,29 @@ class ExpiryReminder extends BuildTask
                 }
             }
         }
+
+        $this->reportCrontabRun($messages);
+    }
+
+    private function reportCrontabRun($content = [])
+    {
+        $email = Email::create('noreply@cita.org.nz', 'leochenftw@gmail.com', '[CITANZ] Crontab ran');
+        if (empty($content)) {
+            $content = '- EMPTY RUN';
+        } else {
+            $content = trim(implode('<br />', $content));
+        }
+
+        $body = <<<MSG
+  <p>Hi</p>
+
+  <p>The crontab has run. See content below:</p>
+  <p>$content</p>
+  <p>Kind regards<br />
+  CITANZ</p>
+  MSG;
+        $email->setBody($body);
+        $email->send();
     }
 
     private function notifyAdminMembershipEnded($member)
