@@ -1,3 +1,6 @@
+# CITA WEB 简易开(jie)发(pan)手册
+友情提醒：如果下面的内容你看不懂，切莫头铁硬上。那么多现成云工具，总有几款适合你
+
 ## 后端
 [SilverStripe 4](https://docs.silverstripe.org/en/4/)
 
@@ -16,6 +19,11 @@ npm install;npm run prod
 or
 ```
 yarn;yarn prod
+```
+
+#### 前端要node几？
+```
+nvm use
 ```
 
 ## 然后呢？
