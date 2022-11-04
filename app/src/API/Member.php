@@ -6,7 +6,6 @@ use SilverStripe\Dev\Debug;
 use SilverStripe\Core\Convert;
 use ZxcvbnPhp\Zxcvbn;
 use Cita\eCommerce\Model\Customer;
-use PMW\Util\PasswordStrength;
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\HTTPResponse;
