@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Base from '../components/pages/Base'
 import MemberCentre from '../components/pages/types/MemberCentre'
+import goTo from 'vuetify/lib/services/goto'
 
 Vue.use(Router)
 
@@ -24,6 +25,14 @@ export default new Router({
       }
     ],
     scrollBehavior (to, from, savedPosition) {
-      return { x: 0, y: 0 };
+      let scrollTo = 0
+
+      if (to.hash) {
+        scrollTo = to.hash
+      } else if (savedPosition) {
+        scrollTo = savedPosition.y
+      }
+
+      return goTo(scrollTo)
     }
 })

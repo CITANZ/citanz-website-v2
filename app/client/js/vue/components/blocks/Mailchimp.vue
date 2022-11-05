@@ -1,5 +1,5 @@
 <template>
-<section class="section mailchimp-section">
+<section class="section mailchimp-section mb-0">
   <v-container>
     <h2 class="text-center mb-4 text-h4">{{ mcData.title }}</h2>
     <v-row class="text-center mb-6">

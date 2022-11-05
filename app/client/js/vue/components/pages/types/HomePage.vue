@@ -23,7 +23,7 @@
           </div>
         </v-col>
         <v-col cols="12" sm="6">
-          <p><v-img :src="sectionWhyWeHere.image.large" /></p>
+          <p class="about-why-we-here-image"><v-img :src="sectionWhyWeHere.image.large" /></p>
           <div class="d-sm-none about__from-companies" v-if="sectionWhyWeHere.companies && sectionWhyWeHere.companies.length">
             <p class="h5">Our members are from</p>
             <p class="about__from-companies__items">
@@ -37,12 +37,12 @@
               </span>
             </p>
           </div>
-          <v-row>
+          <v-row class="about-stats">
             <v-col cols="auto">
               <p class="h2">{{ sectionWhyWeHere.num_meetups }}</p>
               <p class="subheading">Meetups</p>
             </v-col>
-            <v-col>
+            <v-col offset-md="1">
               <p class="h2">{{ sectionWhyWeHere.num_attendees }}</p>
               <p class="subheading">Attendees</p>
             </v-col>
@@ -52,18 +52,18 @@
     </v-container>
   </section>
   <section class="section connect">
-    <v-container>
+    <v-container ref="connect" :style="`--oval-width: ${ovalWidth}px;`">
       <v-row>
-        <v-col cols="12" sm="6">
-          <h2 class="mt-10"><span>{{ sectionConnect.title }}</span></h2>
+        <v-col cols="12" sm="6" md="5">
+          <h2 class="mt-12"><span>{{ sectionConnect.title }}</span></h2>
           <div class="typography" v-html="sectionConnect.content"></div>
         </v-col>
-        <v-col cols="12" sm="6">
+        <v-col cols="12" sm="6" offset-md="1">
           <iconed-block
             v-for="(point, i) in sectionConnect.points"
             :key="`point-${i}`"
             :blockData="point"
-            :class="[{'mt-10 mb-sm-25': i == 0}]"
+            :class="[{'mt-10 mb-16 mb-sm-25': i < sectionConnect.points.length - 1}]"
           />
         </v-col>
       </v-row>
@@ -72,7 +72,7 @@
   <section class="section grow">
     <v-container>
       <v-row>
-        <v-col cols="12" sm="6">
+        <v-col cols="12" sm="6" class="grow-image">
           <v-img
             v-if="sectionGrow.image"
             :src="sectionGrow.image.url"
@@ -87,6 +87,7 @@
             v-for="(point, i) in sectionGrow.points"
             :key="`point-${i}`"
             :blockData="point"
+            :class="[{'mt-10 mb-16 mb-sm-25': i < sectionGrow.points.length - 1}]"
           />
         </v-col>
       </v-row>
@@ -102,7 +103,7 @@
             v-for="(point, i) in sectionExplore.points"
             :key="`point-${i}`"
             :blockData="point"
-            :class="[{'mt-10 mb-sm-25': i == 0}]"
+            :class="[{'mt-10 mb-16 mb-sm-25': i < sectionExplore.points.length - 1}]"
           />
         </v-col>
         <v-col cols="12" sm="6">
@@ -249,6 +250,11 @@
 import IconedBlock from '../../blocks/IconedBlock'
 export default {
   name: "HomePage",
+  data() {
+    return {
+      ovalWidth: 432,
+    }
+  },
   components: {
     'iconed-block': IconedBlock,
   },
@@ -277,6 +283,139 @@ export default {
     sectionUpcoming() {
       return this.site_data.upcoming
     },
-  }
+  },
+  created () {
+    window.addEventListener('resize', this.handleWindowResize)
+  },
+  beforeDestroy () {
+    window.removeEventListener('resize', this.handleWindowResize)
+  },
+  mounted () {
+    this.$nextTick().then(() => {
+      window.dispatchEvent(new Event('resize'))
+    })
+  },
+  methods: {
+    workoutOvalWidth () {
+      if (this.$refs.connect) {
+        this.ovalWidth = this.$refs.connect.clientHeight
+      }
+    },
+    handleWindowResize () {
+      this.workoutOvalWidth()
+    },
+  },
 }
 </script>
+<style lang="scss">
+.homepage {
+  .page-hero,
+  .section {
+    &:not(:last-child) {
+      margin-bottom: 120px;
+      @media (max-width: 768px) {
+        margin-bottom: 60px;
+      }
+    }
+  }
+
+  .section {
+    &.title-section {
+      margin-bottom: 0;
+    }
+
+    &.about {
+      .col-12 {
+        position: relative;
+        &:first-child {
+          &::before {
+            pointer-events: none;
+            display: block;
+            background-image: url('https://www.cita.org.nz/_resources/app/client/images/red-dots.svg');
+            background-repeat: no-repeat;
+            content: '';
+            width: 62px;
+            height: 54px;
+            position: absolute;
+            z-index: 0;
+            transform: translateX(-100%);
+            left: 28px;
+          }
+        }
+      }
+
+      .about-why-we-here-image {
+        margin-bottom: 60px;
+      }
+
+      .about-stats {
+        .h2,
+        .subheading {
+          font-family: Montserrat, sans-serif !important;
+        }
+
+        .h2 {
+          font-size: 80px;
+          font-weight: bold;
+          line-height: normal;
+          color: var(--secondary-blue);
+          margin-bottom: 0;
+        }
+
+        .subheading {
+          font-size: 18px;
+          font-weight: 500;
+          line-height: normal;
+          letter-spacing: 0.86px;
+          color: var(--descriptive);
+          text-transform: uppercase;
+        }
+      }
+    }
+
+    &.connect {
+      .container {
+        &::before {
+          pointer-events: none;
+          display: block;
+          position: absolute;
+          width: var(--oval-width);
+          height: 100%;
+          left: 5%;
+          transform: translateX(-50%);
+          background-color: var(--oval-blue);
+          border-radius: 50%;
+          z-index: 0;
+          content: '';
+        }
+      }
+    }
+
+    &.grow {
+      .grow-image {
+        position: relative;
+        @media (min-width: 960px) {
+          padding-right: 88px;
+        }
+
+        &::before {
+          pointer-events: none;
+          display: block;
+          background-image: url('https://www.cita.org.nz/_resources/app/client/images/blue-dots.svg');
+          background-repeat: no-repeat;
+          content: '';
+          width: 62px;
+          height: 54px;
+          position: absolute;
+          z-index: 0;
+          top: -12px;
+          right: 0;
+          @media (min-width: 960px) {
+            transform: translateX(-100%);
+          }
+        }
+      }
+    }
+  }
+}
+</style>

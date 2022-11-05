@@ -1,0 +1,39 @@
+.section {
+  h2 {
+    font-size: 36px;
+    font-weight: 500;
+    line-height: 1.33;
+    letter-spacing: 0.55px;
+    color: var(--h2-black);
+    &:not(:last-child) {
+      margin-bottom: 1rem;
+    }
+  }
+
+  .typography {
+    font-size: 16px;
+    line-height: 2;
+    letter-spacing: 0.19px;
+    color: var(--descriptive);
+    letter-spacing: 0.19px;
+    a {
+      text-decoration: none;
+      position: relative;
+
+      &:hover,
+      &:focus {
+        color: var(--orange);
+      }
+    }
+  }
+
+  &.mailchimp-section {
+    h2 {
+      color: white;
+    }
+
+    .typography {
+      color: white;
+    }
+  }
+}

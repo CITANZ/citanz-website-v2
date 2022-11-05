@@ -1,5 +1,13 @@
 .iconed-block {
+  @include media-breakpoint-up(md) {
+    padding-right: 96px;
+  }
+
   &__icon {
     left: 0;
+  }
+
+  h3 {
+    margin-bottom: 4px;
   }
 }

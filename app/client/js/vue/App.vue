@@ -1,5 +1,5 @@
 <template>
-<v-app v-if="site_data">
+<v-app v-if="site_data" :class="typeClass">
   <site-header />
   <router-view />
   <mail-chimp v-if="$route.name !== 'MemberCentre'" :mcData="site_data.siteconfig.mailchimp" />
@@ -78,6 +78,9 @@ export default {
         'refreshingToken',
         'skipFetchOnce',
     ]),
+    typeClass () {
+      return this.site_data.pagetype.toLowerCase()
+    },
   },
   methods: {
     ...mapActions([
