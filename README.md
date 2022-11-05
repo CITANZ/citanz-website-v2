@@ -1,3 +1,47 @@
+# CITA WEB 简易开(jie)发(pan)手册
+友情提醒：如果下面的内容你看不懂，切莫头铁硬上。那么多现成云工具，总有几款适合你
+
+## 后端
+[SilverStripe 4](https://docs.silverstripe.org/en/4/)
+
+### 咋弄？
+```
+composer instsall
+```
+
+## 前端
+[VueJs](https://v2.vuejs.org/) v2
+
+### 咋弄？
+```
+npm install;npm run prod
+```
+or
+```
+yarn;yarn prod
+```
+
+#### 前端要node几？
+```
+nvm use
+```
+
+## 然后呢？
+根据你本地LAMP/XAMP的情况，设置.env文件
+
+### 再然后呢？
+```
+sake dev/build flush=all
+```
+
+### 设置不好
+到CITA群志愿者群里提问
+
+#### 我不是志愿者
+我也不是你老师
+
+------
+
 ## OAuth Setup
 - Generate oauth encryption key and set `OAUTH_ENCRYPTION_KEY` in .env file
     - `php -r 'echo base64_encode(random_bytes(32)), PHP_EOL;'`
