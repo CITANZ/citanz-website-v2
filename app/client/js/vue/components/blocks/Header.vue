@@ -29,19 +29,37 @@
           :style="navbarStyles"
           @mouseleave="resetBarPos"
         >
-          <v-btn
-            v-for="navitem in site_nav"
-            ref="navItems"
-            :key="navitem.label"
-            :to="navitem.isExternal ? null : navitem.url"
-            :href="navitem.isExternal ? navitem.url : null"
-            :target="navitem.isExternal ? '_blank' : null"
-            text
-            plain
-            :ripple="false"
-            :class="{'is-active': navitem.active}"
-            @mouseenter="reportNavItemPos"
-          >{{ navitem.label }}</v-btn>
+          <template v-if="!user">
+            <v-btn
+              v-for="navitem in site_nav"
+              ref="navItems"
+              :key="navitem.label"
+              :to="navitem.isExternal ? null : navitem.url"
+              :href="navitem.isExternal ? navitem.url : null"
+              :target="navitem.isExternal ? '_blank' : null"
+              text
+              plain
+              :ripple="false"
+              :class="{'is-active': navitem.active}"
+              @mouseenter="reportNavItemPos"
+            >{{ navitem.label }}</v-btn>
+          </template>
+          <template v-else>
+            <v-btn
+              v-for="navitem in site_nav"
+              v-if="navitem.pagetype !== 'SignupPage'"
+              ref="navItems"
+              :key="navitem.label"
+              :to="navitem.isExternal ? null : navitem.url"
+              :href="navitem.isExternal ? navitem.url : null"
+              :target="navitem.isExternal ? '_blank' : null"
+              text
+              plain
+              :ripple="false"
+              :class="{'is-active': navitem.active}"
+              @mouseenter="reportNavItemPos"
+            >{{ navitem.label }}</v-btn>
+          </template>
         </v-toolbar-items>
         <v-btn
           v-if="!user"
