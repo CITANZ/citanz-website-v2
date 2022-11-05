@@ -100,6 +100,7 @@ class HomePage extends Page
 
         if (Director::isLive()) {
             if ($data = CacheHandler::read('page.' . $this->ID, 'PageData')) {
+                $data['cached'] = true;
                 return $data;
             }
         }

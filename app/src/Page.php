@@ -13,6 +13,7 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\SiteConfig\SiteConfig;
 use SilverShop\HasOneField\HasOneButtonField;
 use App\Web\Model\PageHero;
+use SilverStripe\Control\Director;
 
 class Page extends SiteTree implements Flushable
 {
@@ -68,6 +69,13 @@ class Page extends SiteTree implements Flushable
 
     public function getData()
     {
+        if (Director::isLive() && $this instanceof Page) {
+            if ($data = CacheHandler::read('page.' . $this->ID, 'PageData')) {
+                $data['cached'] = true;
+                return $data;
+            }
+        }
+
         $siteconfig = SiteConfig::current_site_config();
         $data = [
             'id' => $this->ID,
@@ -84,6 +92,10 @@ class Page extends SiteTree implements Flushable
 
         if (!empty($siteconfig->Data)) {
             $data = array_merge($data, ['siteconfig' => $siteconfig->Data]);
+        }
+
+        if (Director::isLive() && $this instanceof Page) {
+            CacheHandler::save('page.' . $this->ID, $data, 'PageData');
         }
 
         $this->extend('getData', $data);

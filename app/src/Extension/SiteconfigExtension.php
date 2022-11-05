@@ -2,6 +2,10 @@
 
 namespace App\Web\Extension;
 
+use SilverStripe\Forms\GridField\GridFieldConfig_Base;
+use SilverStripe\Dev\Debug;
+use SilverStripe\Forms\GridField\GridField;
+use SilverStripe\Forms\HeaderField;
 use SilverStripe\Forms\HTMLEditor\HtmlEditorField;
 use SilverStripe\Forms\CheckboxField;
 use SilverStripe\Forms\TextareaField;
@@ -14,8 +18,15 @@ use SilverStripe\Forms\FieldList;
 use SilverStripe\Assets\File;
 use SilverStripe\ORM\DataExtension;
 use SilverStripe\Forms\LiteralField;
+use SilverStripe\View\ArrayData;
+use SilverStripe\ORM\ArrayList;
 use Leochenftw\Grid;
+use App\Web\API\MemberStatsAPI;
 use Page;
+use SilverStripe\Forms\GridField\GridFieldDataColumns;
+use SilverStripe\Forms\GridField\GridFieldExportButton;
+use SilverStripe\Forms\TabSet;
+use SilverStripe\Forms\Tab;
 
 /**
  * @file SiteConfigExtension
@@ -294,6 +305,8 @@ class SiteConfigExtension extends DataExtension
             ]
         );
 
+        $this->setupMemberStatsTab($fields);
+
         $fields->removeByName([
             'Logo'
         ]);
@@ -309,5 +322,98 @@ class SiteConfigExtension extends DataExtension
             }
         }
         return $url;
+    }
+
+    private function setupMemberStatsTab(&$fields)
+    {
+        $config = GridFieldConfig_Base::create();
+        $exportButton = new GridFieldExportButton('buttons-before-right');
+
+        $exportButton->setExportColumns([
+            '#',
+            'CitaID',
+            'FirstName',
+            'LastName',
+            'Email',
+            'Expiry',
+        ]);
+
+        $config
+            ->addComponent($exportButton)
+        ;
+
+        $config
+            ->getComponentByType(GridFieldDataColumns::class)
+            ->setDisplayFields([
+                'CitaID' => 'CITANZ-ID',
+                'FirstName' => 'First name',
+                'LastName' => 'Last name',
+                'Email' => 'Email address',
+                'Expiry' => 'Expiry date',
+            ]);
+        ;
+
+        $members = MemberStatsAPI::getExpiredMembers();
+        $droppedOutMembers = [];
+
+        foreach ($members as $member) {
+            $droppedOutMembers[] = ArrayData::create($member);
+        }
+
+        $droppedOutMembers = ArrayList::create($droppedOutMembers);
+        $renewedMembers = ArrayList::create(MemberStatsAPI::getRecentlyRenewedMembers());
+        $newMembers = ArrayList::create(MemberStatsAPI::getNewMembers());
+
+        $droppedOutCount = number_format($droppedOutMembers->count());
+        $renewedCount = number_format($renewedMembers->count());
+        $newCount = number_format($newMembers->count());
+
+        $tabset = TabSet::create(
+            'MemberStats',
+            Tab::create(
+                'Renewed members',
+                HeaderField::create(
+                    'RenewedMembers',
+                    'This does not include the new members (joined for less than a year)'
+                ),
+                GridField::create(
+                    'RecentlyRenewedMembers',
+                    "There are {$renewedCount} members has renewed in this year",
+                    $renewedMembers,
+                    $config
+                )
+            ),
+            Tab::create(
+                'New members',
+                HeaderField::create(
+                    'NewMembers',
+                    'The members who have joined this year'
+                ),
+                GridField::create(
+                    'NewJoinedMembers',
+                    "There are {$newCount} members has joined this year",
+                    $newMembers,
+                    $config
+                )
+            ),
+            Tab::create(
+                'Dropped-out members',
+                HeaderField::create(
+                    'NolongerMembers',
+                    'The accounts that used to be members, but didn\'t renew'
+                ),
+                GridField::create(
+                    'droppedOutMembers',
+                    "There are {$droppedOutCount} expired members",
+                    $droppedOutMembers,
+                    $config
+                )
+            ),
+        );
+
+        $fields->addFieldToTab(
+            'Root.MemberStats',
+            $tabset
+        );
     }
 }

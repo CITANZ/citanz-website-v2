@@ -63,6 +63,7 @@ class TeamPage extends Page
         }
 
         if ($data = CacheHandler::read('page.' . $this->ID, 'PageData')) {
+            $data['cached'] = true;
             return $data;
         }
 

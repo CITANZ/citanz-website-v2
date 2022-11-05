@@ -39,7 +39,7 @@ SilverStripe\Core\Injector\Injector:
     constructor:
       - leochenftw@gmail.com
       - SilverStripe Error Alert
-      - leochenftw@gmail.com
+      - noreply@cita.org.nz
       - error
     properties:
       ContentType: text/html
