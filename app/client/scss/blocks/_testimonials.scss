@@ -1,4 +1,7 @@
 .testimonials {
+  padding: 96px 0 114px;
+  background-color: #f1f7fc;
+
   .testimonial {
     display: flex;
     flex-direction: column;
@@ -7,6 +10,10 @@
       &:not(:last-child) {
         margin-bottom: 1rem;
       }
+    }
+
+    .v-image {
+      border-radius: 50%;
     }
   }
 }

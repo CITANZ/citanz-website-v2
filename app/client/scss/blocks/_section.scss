@@ -13,9 +13,13 @@
   .typography {
     font-size: 16px;
     line-height: 2;
-    letter-spacing: 0.19px;
     color: var(--descriptive);
-    letter-spacing: 0.19px;
+
+    &,
+    p {
+      letter-spacing: 0.19px;
+    }
+
     a {
       text-decoration: none;
       position: relative;

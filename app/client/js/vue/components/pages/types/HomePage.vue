@@ -58,7 +58,7 @@
           <h2 class="mt-12"><span>{{ sectionConnect.title }}</span></h2>
           <div class="typography" v-html="sectionConnect.content"></div>
         </v-col>
-        <v-col cols="12" sm="6" offset-md="1">
+        <v-col cols="12" sm="6" md="5" offset-md="1">
           <iconed-block
             v-for="(point, i) in sectionConnect.points"
             :key="`point-${i}`"
@@ -87,7 +87,7 @@
             v-for="(point, i) in sectionGrow.points"
             :key="`point-${i}`"
             :blockData="point"
-            :class="[{'mt-10 mb-16 mb-sm-25': i < sectionGrow.points.length - 1}]"
+            :class="[{'mt-10 mb-18': i < sectionGrow.points.length - 1}, 'pr-md-24']"
           />
         </v-col>
       </v-row>
@@ -96,17 +96,17 @@
   <section class="section explore">
     <v-container>
       <v-row>
-        <v-col cols="12" sm="6">
+        <v-col cols="12" md="5">
           <h2><span>{{ sectionExplore.title }}</span></h2>
-          <div class="typography" v-html="sectionExplore.content"></div>
+          <div class="typography mb-16" v-html="sectionExplore.content"></div>
           <iconed-block
             v-for="(point, i) in sectionExplore.points"
             :key="`point-${i}`"
             :blockData="point"
-            :class="[{'mt-10 mb-16 mb-sm-25': i < sectionExplore.points.length - 1}]"
+            :class="[{'mt-10 mb-18': i < sectionExplore.points.length - 1}]"
           />
         </v-col>
-        <v-col cols="12" sm="6">
+        <v-col cols="12" sm="6" offset-md="1">
           <v-img
             v-if="sectionExplore.image"
             :src="sectionExplore.image.url"
@@ -114,14 +114,14 @@
             :aspect-ratio="sectionExplore.image.width/sectionExplore.image.height"
           />
           <div class="explore__jobs">
-            <h3>Featured Jobs</h3>
+            <h3 class="loose-font">Featured Jobs</h3>
             <v-row>
               <v-col cols="12" sm="6"
                 v-for="(job, i) in sectionExplore.jobs"
                 :key="`job-${i}`"
               >
                 <div class="explore__job">
-                  <p class="explore__job__logo">
+                  <p class="explore__job__logo mb-1">
                     <img height="24" class="d-block" :src="job.company.mini_logo ? job.company.mini_logo : job.company.logo" :alt="`${job.company.title}'s logo'`" />
                   </p>
                   <p class="explore__job__title mb-0">{{ job.title.trim() }}</p>
@@ -145,21 +145,25 @@
           :key="`image-cta-${i}`"
         >
           <component
-            class="d-block cta-section__cta-item"
+            class="cta-section__cta-item"
             :is="!imageCTA.link.open_in_blank && imageCTA.link.is_internal ? 'router-link' : 'a'"
             :to="!imageCTA.link.open_in_blank && imageCTA.link.is_internal ? imageCTA.link.url : null"
             :href="imageCTA.link.open_in_blank || imageCTA.link.is_internal ? imageCTA.link.url : null"
             :target="imageCTA.link.open_in_blank ? '_blank' : null"
           >
-            <v-img
-              class="cta-section__cta-item__image"
-              :src="imageCTA.image.url"
-              :aspect-ratio="imageCTA.image.width / imageCTA.image.height"
-              :alt="imageCTA.image.titl"
-            />
-            <p class="subheading">{{ imageCTA.subtitle }}</p>
-            <h3>{{ imageCTA.title }}</h3>
-            <p><span class="cta-section__cta-item__cta">{{ imageCTA.link.title }}</span></p>
+            <div class="cta-section__cta-item__image-holder">
+              <v-img
+                class="cta-section__cta-item__image"
+                :src="imageCTA.image.url"
+                :aspect-ratio="imageCTA.image.width / imageCTA.image.height"
+                :alt="imageCTA.image.titl"
+              />
+            </div>
+            <div class="cta-section__cta-item__content">
+              <p class="subheading">{{ imageCTA.subtitle }}</p>
+              <h3>{{ imageCTA.title }}</h3>
+              <p><span class="cta-section__cta-item__cta">{{ imageCTA.link.title }}</span></p>
+            </div>
           </component>
         </v-col>
       </v-row>
@@ -412,6 +416,113 @@ export default {
           right: 0;
           @media (min-width: 960px) {
             transform: translateX(-100%);
+          }
+        }
+      }
+    }
+
+    &.explore {
+      .explore {
+        &__job {
+          &s {
+            background-color: #f2f8fd;
+            padding: 36px 16px 32px;
+            h3 {
+              font-family: "Source Sans Pro", sans-serif !important;
+              color: var(--h3-black);
+              font-size: 16px;
+              line-height: 1.5;
+              letter-spacing: normal;
+
+              &:not(:last-child) {
+                margin-bottom: 3rem;
+              }
+            }
+          }
+
+          &__logo {
+            img {
+              max-height: 24px;
+              width: auto;
+            }
+          }
+
+          &__title {
+            color: var(--h3-black);
+          }
+
+          &__location {
+            color: var(--descriptive);
+            line-height: 2;
+          }
+        }
+      }
+    }
+
+    &.cta-section {
+      .cta-section {
+        &__cta-item {
+          text-decoration: none;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+
+          .cta-section__cta-item__content {
+            flex: 1;
+          }
+
+          &__image {
+            &-holder {
+              overflow: hidden;
+            }
+          }
+
+          &__content {
+            padding: 30px 24px 48px;
+            border: solid 1px #f5f6f6;
+            border-top: none;
+
+            .subheading {
+              text-transform: uppercase;
+              font-family: Montserrat, sans-serif !important;
+              font-size: 14px;
+              font-weight: 500;
+              line-height: 1.86;
+              letter-spacing: normal;
+              color: var(--descriptive);
+              margin-bottom: 10px;
+            }
+
+            h3 {
+              color: var(--dark);
+              font-size: 18px;
+              font-weight: 600 !important;
+              line-height: 1.78;
+              letter-spacing: normal;
+              &:not(:last-child) {
+                margin-bottom: 22px;
+              }
+            }
+          }
+
+          &,
+          &__image,
+          &__cta {
+            transition: all ease-out .3s;
+            transition-delay: 0.15s;
+          }
+
+          &:hover,
+          &:focus {
+            box-shadow: 0 2px 10px 0px rgb(0 0 0 / 20%);
+            .cta-section__cta-item__image {
+              transform: scale(1.1);
+              transition-delay: 0s;
+            }
+
+            .cta-section__cta-item__cta {
+              color: var(--orange);
+            }
           }
         }
       }

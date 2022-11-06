@@ -5,7 +5,10 @@ h1, h2, h3, h4, h5, h6,
 .text-h4,
 .text-h5,
 .text-h6 {
-  font-family: Montserrat,sans-serif !important;
+  &:not(.loose-font) {
+    font-family: Montserrat,sans-serif !important;
+  }
+
   font-weight: 500;
 }
 
@@ -24,6 +27,12 @@ h1, h2, h3, h4, h5, h6,
   p {
     &:last-child {
       margin-bottom: 0;
+    }
+  }
+
+  li {
+    &:not(:last-child) {
+      margin-bottom: 0.5em;
     }
   }
 }

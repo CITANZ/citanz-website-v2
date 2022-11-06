@@ -185,3 +185,163 @@
     }
   }
 }
+
+.pt {
+  @for $i from 17 through 25 {
+    &-#{$i} {
+      padding-top: $i * 4px !important;
+    }
+
+    &-sm {
+      &-#{$i} {
+        @include media-breakpoint-up(sm) {
+          padding-top: $i * 4px !important;
+        }
+      }
+    }
+
+    &-md {
+      &-#{$i} {
+        @include media-breakpoint-up(md) {
+          padding-top: $i * 4px !important;
+        }
+      }
+    }
+
+    &-lg {
+      &-#{$i} {
+        @include media-breakpoint-up(lg) {
+          padding-top: $i * 4px !important;
+        }
+      }
+    }
+
+    &-xl {
+      &-#{$i} {
+        @include media-breakpoint-up(xl) {
+          padding-top: $i * 4px !important;
+        }
+      }
+    }
+  }
+}
+
+.pr {
+  @for $i from 17 through 25 {
+    &-#{$i} {
+      padding-right: $i * 4px !important;
+    }
+
+    &-sm {
+      &-#{$i} {
+        @include media-breakpoint-up(sm) {
+          padding-right: $i * 4px !important;
+        }
+      }
+    }
+
+    &-md {
+      &-#{$i} {
+        @include media-breakpoint-up(md) {
+          padding-right: $i * 4px !important;
+        }
+      }
+    }
+
+    &-lg {
+      &-#{$i} {
+        @include media-breakpoint-up(lg) {
+          padding-right: $i * 4px !important;
+        }
+      }
+    }
+
+    &-xl {
+      &-#{$i} {
+        @include media-breakpoint-up(xl) {
+          padding-right: $i * 4px !important;
+        }
+      }
+    }
+  }
+}
+
+.pb {
+  @for $i from 17 through 25 {
+    &-#{$i} {
+      padding-bottom: $i * 4px !important;
+    }
+
+    &-sm {
+      &-#{$i} {
+        @include media-breakpoint-up(sm) {
+          padding-bottom: $i * 4px !important;
+        }
+      }
+    }
+
+    &-md {
+      &-#{$i} {
+        @include media-breakpoint-up(md) {
+          padding-bottom: $i * 4px !important;
+        }
+      }
+    }
+
+    &-lg {
+      &-#{$i} {
+        @include media-breakpoint-up(lg) {
+          padding-bottom: $i * 4px !important;
+        }
+      }
+    }
+
+    &-xl {
+      &-#{$i} {
+        @include media-breakpoint-up(xl) {
+          padding-bottom: $i * 4px !important;
+        }
+      }
+    }
+  }
+}
+
+.pl {
+  @for $i from 17 through 25 {
+    &-#{$i} {
+      padding-left: $i * 4px !important;
+    }
+
+    &-sm {
+      &-#{$i} {
+        @include media-breakpoint-up(sm) {
+          padding-left: $i * 4px !important;
+        }
+      }
+    }
+
+    &-md {
+      &-#{$i} {
+        @include media-breakpoint-up(md) {
+          padding-left: $i * 4px !important;
+        }
+      }
+    }
+
+    &-lg {
+      &-#{$i} {
+        @include media-breakpoint-up(lg) {
+          padding-left: $i * 4px !important;
+        }
+      }
+    }
+
+    &-xl {
+      &-#{$i} {
+        @include media-breakpoint-up(xl) {
+          padding-left: $i * 4px !important;
+        }
+      }
+    }
+  }
+}
