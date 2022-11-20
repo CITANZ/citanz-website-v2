@@ -24,7 +24,7 @@ SilverStripe\Core\Injector\Injector:
   LogFileHandler:
     class: Monolog\Handler\StreamHandler
     constructor:
-      - "/container/application/citanz/silverstripe.log"
+      - "../silverstripe.log"
       - "info"
 ---
 Only:
