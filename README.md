@@ -50,6 +50,9 @@ sake dev/build flush=all
 #### 我都说我不是志愿者了
 君子袒蛋蛋，小人藏鸡鸡 -- 那您的意思是？
 
+
+## 前后端auth通信设置（signin以及`/member/`下面的功能都要用到）
+往下看
 ------
 
 ## OAuth Setup
