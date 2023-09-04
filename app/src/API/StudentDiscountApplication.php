@@ -37,7 +37,6 @@ class StudentDiscountApplication extends RestfulController
      * @var array
      */
     private static $allowed_actions = [
-        'get' => true,
         'post' => true,
     ];
 

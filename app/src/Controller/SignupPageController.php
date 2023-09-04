@@ -93,10 +93,14 @@ class SignupPageController extends PageController
 
         if (empty($this->firstName)) {
             $errors[] = 'First name is missing';
+        } elseif (count(explode(' ', $this->firstName)) > 2) {
+            $errors[] = 'So your first name is that long huh?';
         }
 
         if (empty($this->lastName)) {
             $errors[] = 'Last name is missing';
+        } elseif (count(explode(' ', $this->lastName)) > 2) {
+            $errors[] = 'So your last name is that long huh?';
         }
 
         if (empty($this->password)) {
@@ -109,6 +113,8 @@ class SignupPageController extends PageController
 
         if (empty($this->email)) {
             $errors[] = 'Email is missing';
+        } elseif (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Your email address is invalid. Please contact the admin';
         }
 
         if (empty($this->agreed)) {

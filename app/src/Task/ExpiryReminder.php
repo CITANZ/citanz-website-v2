@@ -175,7 +175,7 @@ MSG;
 
   <p>Your CITANZ membership is going to expire in {$days} days.</p>
 
-  <p>If <a href="$link" target="_blank">renew now</a>, you can receive a 20% off discount. (Students will get a 50% off discount)</p>
+  <p><a href="$link" target="_blank">Renew now</a>. (Students will get a 50% off discount)</p>
 
   <p>Kind regards<br />
   CITANZ</p>
@@ -225,7 +225,7 @@ MSG;
         $body = <<<MSG
 <p>Hi {$member->FirstName}</p>
 
-<p>It's a notice that your CITANZ's membership has expired, but the renewal discount (20% off or 50% off for students) will still last until {$discountValidUntil}.</p>
+<p>It's a notice that your CITANZ's membership has expired, but the renewal discount (50% off for students) will still last until {$discountValidUntil}.</p>
 
 <p><a href="$link" target="_blank">Renew now</a></p>
 

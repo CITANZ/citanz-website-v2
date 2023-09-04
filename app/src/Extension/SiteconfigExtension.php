@@ -305,7 +305,7 @@ class SiteConfigExtension extends DataExtension
             ]
         );
 
-        $this->setupMemberStatsTab($fields);
+        // $this->setupMemberStatsTab($fields);
 
         $fields->removeByName([
             'Logo'
