@@ -19,6 +19,8 @@ RUN npm install
 # Build Vue.js project
 RUN npm run prod
 
-# Copy Vue.js dist
-RUN mkdir -p public/_resources/app/client/dist
-RUN cp -R app/client/dist/* /var/www/html/public/_resources/app/client/dist
+# Expose vendor
+RUN composer vendor-expose
+
+# Build DB
+RUN vendor/bin/sake dev/build flush=all
