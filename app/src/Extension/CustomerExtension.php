@@ -24,6 +24,8 @@ use SilverStripe\Control\Email\Email;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Control\Director;
 use Leochenftw\Util;
+use App\Web\JobReferral\Model\JobApplication;
+use App\Web\JobReferral\Model\ReferralOpportunity;
 
 /**
  * @file SiteConfigExtension
@@ -46,6 +48,7 @@ class CustomerExtension extends DataExtension
         'WechatID' => 'Varchar',
         'LinkedInLink' => 'Varchar(1024)',
         'Github' => 'Varchar',
+        'CanCreateReferralOpportunities' => 'Boolean',
         'Expiry30Reminded' => 'Boolean', // 30 days prior to expiry
         'Expiry7Reminded' => 'Boolean', // 7 days prior to expiry
         'Expiry0Reminded' => 'Boolean', // on the expiry date
@@ -73,10 +76,14 @@ class CustomerExtension extends DataExtension
         'CitaID' => 'Member ID',
         'Expiry' => 'Expiry date',
         'LastSubscriptionPaymentDate' => 'Last Payment Date',
+        'MyRegion' => 'Region',
+        'MyCity' => 'City',
     ];
 
     private static $has_many = [
         'StudentDiscountApplications' => StudentDiscountApplication::class,
+        'JobApplications' => JobApplication::class,
+        'ListedJobs' => ReferralOpportunity::class,
     ];
 
     public function usedToBeAMember()
@@ -88,6 +95,24 @@ class CustomerExtension extends DataExtension
     {
         $fields->fieldByName('Root.Main.Degree')->setEmptyString('- select one -');
         return $fields;
+    }
+
+    public function getMyRegion()
+    {
+        if ($this->owner->Addresses()->exists()) {
+            return $this->owner->Addresses()->First()->Region ?? 'N/A';
+        }
+
+        return 'N/A';
+    }
+
+    public function getMyCity()
+    {
+        if ($this->owner->Addresses()->exists()) {
+            return $this->owner->Addresses()->First()->City ?? 'N/A';
+        }
+
+        return 'N/A';
     }
 
     public function getExtraCustomerData()
@@ -130,6 +155,7 @@ class CustomerExtension extends DataExtension
             'wechatID' => $this->owner->WechatID,
             'linkedinLink' => $this->owner->LinkedInLink,
             'github' => $this->owner->Github,
+            'canListJob' => (bool) $this->owner->CanCreateReferralOpportunities,
         ];
     }
 
@@ -238,5 +264,12 @@ class CustomerExtension extends DataExtension
         }
 
         $email->send();
+    }
+
+    public function getFullname()
+    {
+        $isChinese = !(ctype_alpha($this->owner->FirstName) || ctype_alpha($this->owner->LastName));
+
+        return $isChinese ? "{$this->owner->LastName}{$this->owner->FirstName}" : trim("{$this->owner->FirstName} {$this->owner->LastName}");
     }
 }

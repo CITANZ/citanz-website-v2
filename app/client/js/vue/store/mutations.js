@@ -1,3 +1,5 @@
+import Cookies from 'js-cookie'
+
 export default {
   SET_ISLOADING(state, status) {
     state.isLoading = status
@@ -26,6 +28,7 @@ export default {
   },
   SET_ACCESS_TOKEN(state, token) {
     state.access_token = token
+    Cookies.set('accesstoken', token.access_token)
   },
   SET_USER(state, user) {
     state.user = user

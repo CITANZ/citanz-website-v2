@@ -31,6 +31,19 @@ export default {
     })
   },
 
+  put({ commit }, payload) {
+    return new Promise((resolve, reject) => {
+      axios.put(payload.path, payload.data, payload.headers).then(resolve).catch(reject)
+    })
+  },
+
+  delete({ commit }, payload) {
+    return new Promise((resolve, reject) => {
+      axios.delete(payload.path, payload.headers).then(resolve).catch(reject)
+    })
+  },
+  
+
   doRecovery({ commit }, payload) {
     return new Promise((resolve, reject) => {
       axios.post(payload.path, payload.data, payload.headers).then(resolve).catch(reject)
@@ -102,12 +115,21 @@ export default {
     })
   },
 
-  getPageData({ commit }, path) {
+  getPageData({ commit, state }, path) {
     commit('SET_ERROR', null)
     commit('SET_SITE_DATA', null)
 
     return new Promise((resolve, reject) => {
-      axios.get(path).then(resp => {
+      const payload = state.access_token && state.access_token.access_token ? {
+        headers: { Authorization: `Bearer ${state.access_token.access_token}` },
+      } : null
+      
+      axios.get(path, payload).then(resp => {
+        if (location.pathname == '/referral-opportunities') {
+          const referralItem = resp.data.navigation.find(x => x.url == '/referral-opportunities')
+          referralItem.active = true
+        }
+
         commit('SET_SITE_DATA', resp.data)
         resolve(resp.data)
       }).catch(error => {

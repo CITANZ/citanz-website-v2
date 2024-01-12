@@ -89,4 +89,26 @@ trait OAuthTrait
             return (new HttpResponseAdapter())->fromPsr7($psr7Response);
         }
     }
+
+    public function getUserByToken($jwt)
+    {
+        try {
+            $config = Configuration::forSymmetricSigner(
+                new Sha256(),
+                InMemory::base64Encoded(Environment::getEnv('OAUTH_ENCRYPTION_KEY'))
+            );
+
+            $token = $config->parser()->parse($jwt);
+            $userId = $token->claims()->get('sub');
+
+            if (!$userId) {
+                return null;
+            }
+
+            return Customer::get()->filter('GUID', $userId)->first();
+        } catch (\Exception $e) {
+            Injector::inst()->get(LoggerInterface::class)->error($e);
+            return null;
+        }
+    }
 }

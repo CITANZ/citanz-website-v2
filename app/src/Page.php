@@ -1,5 +1,6 @@
 <?php
 
+use SilverStripe\Dev\Debug;
 use App\Web\Page\HomePage;
 use leochenftw\Util;
 use Leochenftw\Util\CacheHandler;
@@ -14,6 +15,7 @@ use SilverStripe\SiteConfig\SiteConfig;
 use SilverShop\HasOneField\HasOneButtonField;
 use App\Web\Model\PageHero;
 use SilverStripe\Control\Director;
+use SilverStripe\Security\Member;
 
 class Page extends SiteTree implements Flushable
 {
@@ -145,6 +147,19 @@ class Page extends SiteTree implements Flushable
             ];
         }
 
+        $navItem = [
+            'label' => 'Referrals',
+            'url' => '/referral-opportunities',
+            'active' => false,
+            'sub' => [],
+            'pagetype' => 'Referrals',
+            'isExternal' => false,
+        ];
+
+        $firstNavItem = array_shift($list);
+        $newNav = array_merge([ $firstNavItem, $navItem ], $list);
+        $list = $newNav;
+        
         return $list;
     }
 }

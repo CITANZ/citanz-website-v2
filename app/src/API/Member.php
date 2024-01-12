@@ -270,6 +270,21 @@ class Member extends RestfulController
         ];
     }
 
+    public function getJobs(&$request)
+    {
+        $pageSize = 10;
+        $page = (int) $request->getVar('page');
+        $page = $page - 1;
+        $page = $page < 0 ? 0 : $page;
+
+        $list = $this->user->ListedJobs()->sort(['Created' => 'DESC']);
+        return [
+            'list' => $list->limit($pageSize, $page * $pageSize)->TileData,
+            'pageSize' => $pageSize,
+            'pages' => ceil($list->count() / $pageSize),
+        ];
+    }
+
     public function updatePassword(&$request)
     {
         $password = $request->postVar('password');

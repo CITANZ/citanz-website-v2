@@ -1,7 +1,9 @@
 fieldset {
-  border: none;
-  padding: 0;
-  margin: 0;
+  &:not(.v-text-field--outlined fieldset) {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
 }
 
 .container {
@@ -18,7 +20,9 @@ a {
 
   &:hover,
   &:focus {
-    color: var(--orange);
+    &:not(.primary) {
+      color: var(--orange);
+    }
   }
 }
 

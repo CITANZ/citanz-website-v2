@@ -61,6 +61,10 @@ export default {
     },
   },
   created() {
+    if (location.pathname == '/referral-opportunities' && this.site_data) {
+      const referralItem = this.site_data.navigation.find(x => x.url == '/referral-opportunities')
+      referralItem.active = true
+    }
     console.log(this.site_data)
     this.updateAccessToken()
     window.addEventListener('resize', this.handleWindowResize)

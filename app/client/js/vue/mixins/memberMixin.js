@@ -25,7 +25,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['get', 'post', 'setUser']),
+    ...mapActions(['get', 'post', 'put', 'delete', 'setUser']),
     syncMemberData(cbf) {
       this.get(
           '/api/v/1/member',

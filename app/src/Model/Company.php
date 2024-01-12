@@ -8,6 +8,7 @@ use gorriecoe\Link\Models\Link;
 use SilverStripe\Assets\Image;
 use SilverStripe\ORM\DataObject;
 use App\Web\Extension\SortOrderExtension;
+use App\Web\JobReferral\Model\ReferralOpportunity;
 
 /**
  * Description
@@ -50,10 +51,19 @@ class Company extends DataObject
         'Link'      =>  Link::class
     ];
 
+    /**
+     * Has_many relationship
+     * @var array
+     */
+    private static $has_many = [
+        'Jobs' => ReferralOpportunity::class,
+    ];
+
     public function getData()
     {
         $slugify            =   new Slugify();
         return [
+            'id'            =>  $this->ID,
             'title'         =>  $this->Title,
             'classname'     =>  $slugify->slugify($this->Title),
             'logoRaw'       =>  $this->Logo()->exists() ?

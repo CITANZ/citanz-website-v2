@@ -69,7 +69,7 @@ var config = {
         use: 'vue-loader',
       },
       {
-        test: /\.scss$/,
+        test: /\.(css|scss)$/,
         use: [
           MiniCssExtractPlugin.loader,
           {
@@ -87,18 +87,6 @@ var config = {
               `,
             }
           }
-        ]
-      },
-      {
-        test: /\.css$/,
-        use: [
-          MiniCssExtractPlugin.loader,
-          {
-            loader: 'css-loader',
-            options: {
-              url: false
-            }
-          },
         ]
       },
     ],

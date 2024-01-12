@@ -47,7 +47,7 @@
               </v-list-item-group>
             </v-list>
           </v-col>
-          <v-col cols="12" sm="8" lg="7" xl="5">
+          <v-col cols="12" sm="8" :lg="isJobsSection ? 9: 7" :xl="isJobsSection ? 9 : 5">
             <form-password v-if="isResetPassSection" @on-success="onPasswordReset" />
             <template v-else>
               <signin-form v-if="!user" />
@@ -60,6 +60,7 @@
             <membership-section v-if="isMembershipSection" />
             <payments-section v-if="isPaymentsSection" />
             <security-section v-if="isSecuritySection" />
+            <jobs v-if="isJobsSection" />
           </v-col>
         </v-row>
       </v-container>
@@ -76,6 +77,7 @@ import { mapGetters, mapActions } from 'vuex'
 import Payments from './member-pages/Payments'
 import Security from './member-pages/Security'
 import MemberStatus from './member-pages/MemberStatus'
+import Jobs from './member-pages/Jobs'
 
 export default {
   name: 'MemberCentre',
@@ -87,6 +89,7 @@ export default {
     'payments-section': Payments,
     'security-section': Security,
     'membership-section': MemberStatus,
+    'jobs': Jobs,
   },
   data() {
     return {
@@ -129,6 +132,9 @@ export default {
     },
     isSecuritySection() {
       return this.$route.params.action === 'security'
+    },
+    isJobsSection() {
+      return this.$route.params.action === 'referralopportunities'
     },
   },
   methods: {

@@ -2,6 +2,7 @@
 
 namespace App\Web\Extension;
 
+use SilverStripe\Assets\Image;
 use SilverStripe\Forms\GridField\GridFieldConfig_Base;
 use SilverStripe\Dev\Debug;
 use SilverStripe\Forms\GridField\GridField;
@@ -27,6 +28,8 @@ use SilverStripe\Forms\GridField\GridFieldDataColumns;
 use SilverStripe\Forms\GridField\GridFieldExportButton;
 use SilverStripe\Forms\TabSet;
 use SilverStripe\Forms\Tab;
+use Cita\ImageCropper\Model\CitaCroppableImage;
+use Cita\ImageCropper\Fields\CroppableImageField;
 
 /**
  * @file SiteConfigExtension
@@ -40,26 +43,26 @@ class SiteConfigExtension extends DataExtension
      * @var array
      */
     private static $db = [
-        'Email'                 =>  'Varchar(256)',
-        'ProfilesFacebookPage'  =>  'Varchar(512)',
-        'ProfilesTwitterPage'   =>  'Varchar(512)',
-        'ProfilesGooglePage'    =>  'Varchar(512)',
-        'ProfilesLinkedinPage'  =>  'Varchar(512)',
-        'ProfilesPinterestPage' =>  'Varchar(512)',
-        'ProfilesYoutubePage'   =>  'Varchar(512)',
-        'ProfilesInstagramPage' =>  'Varchar(512)',
-        'SubscriptionTitle'     =>  'Varchar(128)',
-        'SubscriptionContent'   =>  'Text',
-        'MailchimpEndpoint'     =>  'Varchar(128)',
-        'MailchimpListID'       =>  'Varchar(32)',
-        'MailchimpAudienceID'   =>  'Varchar(32)',
-        'MailchimpAPIKey'       =>  'Varchar(256)',
-        'MailchimpURL'          =>  'Varchar(256)',
-        'ShowNotification'      =>  'Boolean',
-        'NotificationContent'   =>  'Text',
-        'StudentApplicationRecipient' => 'Text',
-        'AccountAffairsRecipient' => 'Text',
-        'InductionKitContent' => 'HTMLText',
+        'Email'                         =>  'Varchar(256)',
+        'ProfilesFacebookPage'          =>  'Varchar(512)',
+        'ProfilesTwitterPage'           =>  'Varchar(512)',
+        'ProfilesGooglePage'            =>  'Varchar(512)',
+        'ProfilesLinkedinPage'          =>  'Varchar(512)',
+        'ProfilesPinterestPage'         =>  'Varchar(512)',
+        'ProfilesYoutubePage'           =>  'Varchar(512)',
+        'ProfilesInstagramPage'         =>  'Varchar(512)',
+        'SubscriptionTitle'             =>  'Varchar(128)',
+        'SubscriptionContent'           =>  'Text',
+        'MailchimpEndpoint'             =>  'Varchar(128)',
+        'MailchimpListID'               =>  'Varchar(32)',
+        'MailchimpAudienceID'           =>  'Varchar(32)',
+        'MailchimpAPIKey'               =>  'Varchar(256)',
+        'MailchimpURL'                  =>  'Varchar(256)',
+        'ShowNotification'              =>  'Boolean',
+        'NotificationContent'           =>  'Text',
+        'StudentApplicationRecipient'   =>  'Text',
+        'AccountAffairsRecipient'       =>  'Text',
+        'InductionKitContent'           =>  'HTMLText',
     ];
 
     /**
@@ -94,12 +97,14 @@ class SiteConfigExtension extends DataExtension
      */
     private static $has_one = [
         'Logo' => File::class,
-        'FooterLogo'        =>  File::class,
-        'QRCode'            =>  File::class,
-        'SponsorCTA'        =>  Link::class,
-        'DonateCTA'         =>  Link::class,
-        'NotificationLink'  =>  Link::class,
-        'InductionKit'   =>  File::class,
+        'FooterLogo'                =>  File::class,
+        'QRCode'                    =>  File::class,
+        'SponsorCTA'                =>  Link::class,
+        'DonateCTA'                 =>  Link::class,
+        'NotificationLink'          =>  Link::class,
+        'InductionKit'              =>  File::class,
+        'ReferralHero'              =>  CitaCroppableImage::class,
+        'ReferralComingSoonImage'   =>  Image::class,
     ];
 
     public function getData()
@@ -310,6 +315,17 @@ class SiteConfigExtension extends DataExtension
         $fields->removeByName([
             'Logo'
         ]);
+
+        $fields->addFieldsToTab(
+            'Root.ReferralOpportunities',
+            [
+                CroppableImageField::create('ReferralHero', 'Hero Image', $this->owner)->setCropperRatio(98/11),
+                UploadField::create(
+                    'ReferralComingSoonImage',
+                    'Referral Coming Soon Image'
+                ),
+            ]
+        );
 
         return $fields;
     }

@@ -41,6 +41,23 @@ class MemberCentreController extends PageController
         return $this->httpError(404);
     }
 
+    protected function init()
+    {
+        parent::init();
+        
+        $route = $this->request->param('action');
+
+        if ($route == 'referralopportunities') {
+            $this->Title = $this->ReferralOpportunitiesData['title'];
+        } elseif ($route == 'security') {
+            $this->Title = $this->SecurityData['title'];
+        } elseif ($route == 'membership') {
+            $this->Title = $this->MembershipData['title'];
+        } elseif ($route == 'payments') {
+            $this->Title = $this->PaymentsData['title'];
+        }
+    }
+
     public function getData()
     {
         $data = Page::create()->Data;
@@ -69,7 +86,9 @@ class MemberCentreController extends PageController
 
     public function getMembershipData()
     {
-        return $this->DefaultData;
+        $data = $this->DefaultData;
+        $data['title'] = 'Member centre - CITANZ Membership';
+        return $data;
     }
 
     public function getResetpasswordData()
@@ -96,6 +115,11 @@ class MemberCentreController extends PageController
                 'icon' => 'mdi-account-circle',
             ],
             [
+                'title' => 'Referral Opportunities',
+                'url' => '/member/referralopportunities',
+                'icon' => 'mdi-playlist-star',
+            ],
+            [
                 'title' => 'Security',
                 'url' => '/member/security',
                 'icon' => 'mdi-lock',
@@ -116,7 +140,7 @@ class MemberCentreController extends PageController
     public function getPaymentsData()
     {
       return [
-          'title' => 'Member centre - Payment history',
+          'title' => 'Member centre - Payment History',
       ];
     }
 
@@ -125,6 +149,13 @@ class MemberCentreController extends PageController
       return [
           'title' => 'Member centre - Security',
       ];
+    }
+
+    public function getReferralOpportunitiesData()
+    {
+        return [
+            'title' => 'Member centre - Referral Opportunities',
+        ];
     }
 
     public function getViewData()
