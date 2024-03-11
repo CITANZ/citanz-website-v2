@@ -85,3 +85,14 @@ Run the following commands to generate certificates.
 
     openssl genrsa -out private.key 4096
     openssl rsa -in private.key -pubout -out public.key
+
+## How to experience it locally
+
+From the directory of your project:
+
+    docker-compose build
+    docker-compose up -d
+
+Your site will be visible at http://localhost:8080
+
+

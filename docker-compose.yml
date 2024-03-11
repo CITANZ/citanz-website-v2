@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 8080:80
+    depends_on:
+      - database
+    environment:
+      - DOCUMENT_ROOT=/var/www/html/public
+      - SS_TRUSTED_PROXY_IPS=*
+      - SS_ENVIRONMENT_TYPE=dev
+      - SS_DATABASE_SERVER=database
+      - SS_DATABASE_NAME=basekit
+      - SS_DATABASE_USERNAME=root
+      - SS_DATABASE_PASSWORD=
+      - SS_DEFAULT_ADMIN_USERNAME=admin
+      - SS_DEFAULT_ADMIN_PASSWORD=admin
+      - MAPBOX_TOKEN=pk.eyJ1Ijoic29tYXItZGVzaWduLXN0dWRpb3MiLCJhIjoiY2s1eWJuc2c4MXA5bzNsazBwYTZ6dnM3MiJ9.nReqnpF0FswusJzh405eWw
+
+  database:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - 9306:3306
