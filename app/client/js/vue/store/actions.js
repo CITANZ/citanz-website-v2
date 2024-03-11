@@ -1,7 +1,17 @@
-import axios from "axios"
+import axios from 'axios'
+import { v4 as uuidv4 } from 'uuid'
+import S3 from 'aws-sdk/clients/s3'
+
 axios.defaults.headers.common = {
-  'X-Requested-With': 'XMLHttpRequest'
+  'X-Requested-With': 'XMLHttpRequest',
 }
+
+// const s3 = new S3({
+//   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+//   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+//   region: 'ap-southeast-2',
+// })
+
 export default {
   setLoading({ commit }, status) {
     commit("SET_ISLOADING", status)
@@ -125,7 +135,7 @@ export default {
       } : null
       
       axios.get(path, payload).then(resp => {
-        if (location.pathname == '/referral-opportunities') {
+        if (location.pathname == '/referral-opportunities' || location.pathname.startsWith('/referral-opportunities/')) {
           const referralItem = resp.data.navigation.find(x => x.url == '/referral-opportunities')
           referralItem.active = true
         }
@@ -154,5 +164,107 @@ export default {
   },
   setScrolled({ commit }, status) {
     commit('SET_SCROLLED', status)
+  },
+  uploadToBucket ({ state }, payload) {
+    return new Promise((resolve, reject) => {
+      const jwtToken = state.access_token && state.access_token.access_token ? {
+        headers: { Authorization: `Bearer ${state.access_token.access_token}` },
+      } : null
+
+      axios
+        .get('/api/v/1/session/getAAK', jwtToken)
+        .then(resp => {
+          const { key, secret, region } = resp.data
+          const s3 = new S3({
+            accessKeyId: key,
+            secretAccessKey: secret,
+            region: region,
+          })
+
+          const uuid = payload.id
+          const file = payload.file
+          const fileExtension = file.name.split('.')[1]
+          const newName = `${uuidv4()}`
+          const params = {
+            Bucket: 'citanz',
+            Key: `${uuid}/${newName}.${fileExtension}`,
+            Body: file,
+            Metadata: {
+              'original-filename': file.name,
+              'owner-uuid': uuid,
+            },
+          }
+        
+          s3.upload(params, (err, data) => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve(data)
+            }
+          })
+        })
+    })
+  },
+  deleteFromBucket ({ state }, s3bucketkey) {
+    return new Promise((resolve, reject) => {
+      const jwtToken = state.access_token && state.access_token.access_token ? {
+        headers: { Authorization: `Bearer ${state.access_token.access_token}` },
+      } : null
+      
+      axios
+        .get('/api/v/1/session/getAAK', jwtToken)
+        .then(resp => {
+          const { key, secret, region } = resp.data
+          const s3 = new S3({
+            accessKeyId: key,
+            secretAccessKey: secret,
+            region: region,
+          })
+
+        const params = {
+          Bucket: 'citanz',
+          Key: s3bucketkey,
+        }
+      
+        s3.deleteObject(params, (err, data) => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve(data)
+          }
+        })
+      })
+    })
+  },
+  getBucketObjectHeader ({ state }, s3bucketkey) {
+    return new Promise((resolve, reject) => {
+      const jwtToken = state.access_token && state.access_token.access_token ? {
+        headers: { Authorization: `Bearer ${state.access_token.access_token}` },
+      } : null
+
+      axios
+        .get('/api/v/1/session/getAAK', jwtToken)
+        .then(resp => {
+          const { key, secret, region } = resp.data
+          const s3 = new S3({
+            accessKeyId: key,
+            secretAccessKey: secret,
+            region: region,
+          })
+
+        const params = {
+          Bucket: 'citanz',
+          Key: s3bucketkey,
+        }
+      
+        s3.headObject(params, (err, data) => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve(data)
+          }
+        })
+      })
+    })
   },
 }

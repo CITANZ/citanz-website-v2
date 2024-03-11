@@ -31,4 +31,16 @@ body,
     @import './blocks/company-logo';
     @import './blocks/testimonials';
   }
+
+  article.typography {
+    h1, h2, h3, h4, h5, h6 {
+      &:not(:last-child) {
+        margin-bottom: 0.75rem;
+      }
+
+      &:not(:first-child) {
+        margin-top: 2.25rem;
+      }
+    }
+  }
 }

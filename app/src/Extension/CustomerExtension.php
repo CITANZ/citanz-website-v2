@@ -26,6 +26,7 @@ use SilverStripe\Control\Director;
 use Leochenftw\Util;
 use App\Web\JobReferral\Model\JobApplication;
 use App\Web\JobReferral\Model\ReferralOpportunity;
+use SilverStripe\Core\Environment;
 
 /**
  * @file SiteConfigExtension
@@ -52,6 +53,8 @@ class CustomerExtension extends DataExtension
         'Expiry30Reminded' => 'Boolean', // 30 days prior to expiry
         'Expiry7Reminded' => 'Boolean', // 7 days prior to expiry
         'Expiry0Reminded' => 'Boolean', // on the expiry date
+        'CV' => 'Varchar(1024)',
+        'CoverLetter' => 'Varchar(1024)',
     ];
 
     private static $default_sort = ['CitaID' => 'ASC'];
@@ -127,6 +130,7 @@ class CustomerExtension extends DataExtension
             'isStudent' => $this->owner->isStudent ? true : false,
             'isRealStudent' => $this->owner->isRealStudent(),
             'addressMissing' => $this->owner->Addresses()->first() ? empty($this->owner->Addresses()->first()->Address) : true,
+            'canListJob' => (bool) $this->owner->CanCreateReferralOpportunities,
             'hasPendingStudentApplication' => $this->owner->StudentDiscountApplications()->filter(['Approved' => false, 'Rejected' => false])->exists(),
         ];
     }
@@ -143,6 +147,10 @@ class CustomerExtension extends DataExtension
 
     public function getFullProfile()
     {
+        $s3BaseUrl = Environment::getEnv('AWS_S3_ASSETS_BASE_URL') ?? '';
+        $cv = $this->owner->CV;
+        $cl = $this->owner->CoverLetter;
+        $guid = $this->owner->GUID;
         return [
             'dob' => $this->owner->Dob,
             'gender' => $this->owner->Gender,
@@ -156,7 +164,17 @@ class CustomerExtension extends DataExtension
             'linkedinLink' => $this->owner->LinkedInLink,
             'github' => $this->owner->Github,
             'canListJob' => (bool) $this->owner->CanCreateReferralOpportunities,
+            'cv' => !empty($cv) ? "{$s3BaseUrl}{$guid}/{$cv}" : null,
+            'cl' => !empty($cl) ? "{$s3BaseUrl}{$guid}/{$cl}" : null,
         ];
+    }
+
+    public function getCanViewListing()
+    {
+        return $this->owner->CanCreateReferralOpportunities
+            || $this->owner->isValidMembership()
+            || $this->owner->usedToBeAMember()
+        ;
     }
 
     public function isRealStudent()

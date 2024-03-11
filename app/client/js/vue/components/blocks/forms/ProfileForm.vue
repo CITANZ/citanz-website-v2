@@ -157,6 +157,57 @@
         ></v-combobox>
       </v-col>
     </v-row>
+    <template v-if="user?.isPaidMember">
+      <h3 class="mt-6">My C.V</h3>
+      <p>Store your CV & cover letter upfront, so they will be ready upon your applications for any referral opportunities 🤞</p>
+      <p><em>Please rest assured: your CV and cover letter are <strong>NOT</strong> going to be displayed to other members without your authorisation.</em></p>
+      <v-row>
+        <v-col cols="12">
+          <v-row v-if="!cvUrl?.length || editingCV" align="center">
+            <v-col>
+              <v-file-input
+                show-size
+                v-model="cv"
+                accept=".pdf,.doc,.docx"
+                label="C.V"
+              ></v-file-input>
+            </v-col>
+            <v-col v-if="cvUrl?.length" cols="auto"><v-btn @click.prevent="editingCV = !editingCV" text small>cancel</v-btn></v-col>
+          </v-row>
+          <p class="mt-4" v-else>
+            <v-btn color="secondary" :href="cvUrl" target="_blank">
+              <v-icon left>
+                mdi-file-pdf-box
+              </v-icon>
+              My Curriculum Vitae
+            </v-btn>
+            <v-btn class="ml-2" @click.prevent="editingCV = !editingCV" text small>re-upload</v-btn>
+            <v-btn class="ml-2" @click.prevent="deleteCV" text small color="error">delete</v-btn>
+          </p>
+          <v-row v-if="!clUrl?.length || editingCL" align="center">
+            <v-col>
+              <v-file-input
+                show-size
+                v-model="cl"
+                accept=".pdf,.doc,.docx"
+                label="Cover letter"
+              ></v-file-input>
+            </v-col>
+            <v-col v-if="clUrl?.length" cols="auto"><v-btn @click.prevent="editingCL = !editingCL" text small>cancel</v-btn></v-col>
+          </v-row>
+          <p class="mt-4" v-else>
+            <v-btn color="secondary" :href="clUrl" target="_blank">
+              <v-icon left>
+                mdi-file-pdf-box
+              </v-icon>
+              My Cover Letter
+            </v-btn>
+            <v-btn class="ml-2" @click.prevent="editingCL = !editingCL" text small>re-upload</v-btn>
+            <v-btn class="ml-2" @click.prevent="deleteCL" text small color="error">delete</v-btn>
+          </p>
+        </v-col>
+      </v-row>
+    </template>
     <h3 class="mt-6">Social</h3>
     <v-row>
       <v-col cols="12" sm="6">
@@ -186,7 +237,7 @@
         <v-btn type="reset" @click.prevent="reset" x-small text>reset</v-btn>
       </v-col>
       <v-col cols="auto">
-        <v-btn type="submit" :loading="busy" depressed>Submit</v-btn>
+        <v-btn type="submit" :loading="busy" depressed color="primary">Submit</v-btn>
       </v-col>
     </v-row>
   </fieldset>
@@ -214,15 +265,21 @@ export default {
     accessToken: Object,
   },
   watch: {
-    dob(nv) {
+    dob (nv) {
       const [year, month, day] = nv.split('-')
       this.formattedDob = `${day}/${month}/${year}`
     },
-    refreshingToken(nv) {
+    refreshingToken (nv) {
       if (!nv) {
         this.getFullProfile()
       }
-    }
+    },
+    editingCV () {
+      this.cv = null
+    },
+    editingCL () {
+      this.cl = null
+    },
   },
   data() {
     return {
@@ -252,10 +309,18 @@ export default {
       wechatID: null,
       linkedinLink: null,
       github: null,
+      cv: null,
+      cl: null,
+      editingCV: false,
+      editingCL: false,
+      deletingCV: false,
+      deletingCL: false,
+      cvUrl: null,
+      clUrl: null,
     }
   },
   computed: {
-    ...mapGetters(['refreshingToken']),
+    ...mapGetters(['refreshingToken', 'user']),
     titlLevels() {
       return [
         'Entry',
@@ -350,6 +415,10 @@ export default {
         WechatID: this.wechatID,
         LinkedInLink: this.linkedinLink,
         Github: this.github,
+        CV: this.cvUrl,
+        CoverLetter: this.clUrl,
+        DeletingCV: this.deletingCV,
+        DeletingCL: this.deletingCL,
         Address: JSON.stringify({
           Address: this.address,
           Suburb: this.suburb,
@@ -365,7 +434,7 @@ export default {
     this.getFullProfile()
   },
   methods: {
-    ...mapActions(['get', 'post', 'setUser', 'setAccessToken']),
+    ...mapActions(['get', 'post', 'setUser', 'setAccessToken', 'uploadToBucket', 'deleteFromBucket', 'getBucketObjectHeader']),
     // fuck Chrome - thanks, but no fanks
     disableChromeAutofill() {
       if (!this.$refs.addressField) return
@@ -430,13 +499,19 @@ export default {
       this.wechatID = this.originalData.wechatID
       this.linkedinLink = this.originalData.linkedinLink
       this.github = this.originalData.github
+      this.cvUrl = this.originalData.cv
+      this.clUrl = this.originalData.cl
+      this.editingCL = this.editingCV = this.deletingCL = this.deletingCV = false
+      this.cv = this.cl = null
     },
-    updateProfile() {
+    async updateProfile() {
       if (this.busy) {
         return false
       }
 
       this.busy = true
+
+      await Promise.all([this.uploadCV(), this.uploadCL()])
 
       const data = new FormData()
 
@@ -458,14 +533,126 @@ export default {
         this.$store.dispatch('setShowModal', true)
         this.$store.dispatch('setModalColor', 'primary')
         this.$store.dispatch('setPostbackMessage', resp.data.message)
-        this.busy = false
-        this.originalData = resp.data.profile
+        this.originalData = {...resp.data.profile, ...resp.data.user}
         this.setUser(resp.data.user)
+        this.reset()
       }).catch(error => {
         this.$store.dispatch('setShowModal', true)
         this.$store.dispatch('setModalColor', 'red')
         this.$store.dispatch('setPostbackMessage', error.response && error.response.data ? error.response.data.message : 'Uknown error')
+      }).finally(() => {
         this.busy = false
+        this.deletingCV = this.deletingCL = false
+      })
+    },
+    uploadCV () {
+      return new Promise((resolve, reject) => {
+        if (this.cv) {
+          this
+            .performCVDeletion()
+            .finally(() => {
+              this
+                .uploadToBucket({ file: this.cv, id: this.user.id })
+                .then(resp => {
+                  this.cvUrl = resp.key
+                  resolve()
+                }).catch(reject)
+            })
+        } else {
+          resolve()
+        }
+      })
+    },
+    uploadCL () {
+      return new Promise((resolve, reject) => {
+        if (this.cl) {
+          this
+            .performCLDeletion()
+            .finally(() => {
+              this
+                .uploadToBucket({ file: this.cl, id: this.user.id })
+                .then(resp => {
+                  this.clUrl = resp.key
+                  resolve()
+                }).catch(reject)
+            })
+        } else {
+          resolve()
+        }
+      })
+    },
+    deleteCV () {
+      if (confirm('Are you sure you want to delete your CV?')) {
+        this
+          .performCVDeletion()
+          .then(() => {
+            this.deletingCV = true
+            this.updateProfile()
+          })
+      }
+    },
+    deleteCL () {
+      if (confirm('Are you sure you want to delete your cover letter?')) {
+        this
+          .performCLDeletion()
+          .then(() => {
+            this.deletingCL = true
+            this.updateProfile()
+          })
+      }
+    },
+    performCVDeletion() {
+      return new Promise(resolve => {
+        if (!this.cvUrl?.length) {
+          resolve()
+        } else {
+          const key = this.cvUrl.replace('https://citanz.s3.ap-southeast-2.amazonaws.com/', '')
+          this
+            .getBucketObjectHeader(key)
+            .then(data => {
+              if (this.user.id != null && data.Metadata['owner-uuid'] === this.user.id) {
+                this
+                  .deleteFromBucket(key)
+                  .finally(resolve)
+              } else {
+                alert('YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!')
+                reject()
+              }
+            })
+            .catch( err => {
+              console.log(err)
+            })
+        }
+      })
+    },
+    performCLDeletion() {
+      return new Promise((resolve, reject) => {
+        if (!this.clUrl?.length) {
+          resolve()
+        } else {
+          const key = this.clUrl.replace('https://citanz.s3.ap-southeast-2.amazonaws.com/', '')
+
+          this
+            .getBucketObjectHeader(key)
+            .then(data => {
+              if (this.user.id != null && data.Metadata['owner-uuid'] === this.user.id) {
+                this
+                  .deleteFromBucket(key)
+                  .finally(resolve)
+              } else {
+                alert('YOU DO NOT HAVE PERMISSION TO PERFORM THIS ACTION!')
+                reject()
+              }
+            })
+            .catch( err => {
+              if (err.statusCode === 404) {
+                resolve()
+              } else {
+                alert('Something went wrong! Please contact CITANZ admin in Wechat group!')
+                reject()
+              }
+            })
+        }
       })
     },
   },

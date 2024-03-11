@@ -29,6 +29,16 @@ class ReferralOpportunity extends DataObject implements \JsonSerializable
         'TimesViewed' => 'Int',
         'WorkLocation' => 'Varchar(128)',
         'WTR' => 'Boolean',
+        'Deleted' => 'Boolean',
+    ];
+
+    /**
+     * Defines a default list of filters for the search context
+     * @var array
+     */
+    private static $searchable_fields = [
+        'JobTitle',
+        'Deleted',
     ];
 
     private static array $has_one = [
@@ -43,6 +53,16 @@ class ReferralOpportunity extends DataObject implements \JsonSerializable
     private static $has_many = [
         'Applications' => JobApplication::class,
     ];
+
+    private static $cascade_deletes = [
+        'Applications',
+    ];
+
+    public function getIsAppliable()
+    {
+        $validUntil = ctype_digit($this->ValidUntil) ? $this->ValidUntil : strtotime($this->ValidUntil);
+        return !$this->Deleted && $validUntil >= time();
+    }
 
     public function getTitle()
     {

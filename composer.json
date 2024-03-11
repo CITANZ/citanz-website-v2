@@ -17,7 +17,8 @@
         "robbie/psr7-adapters": "^1.0",
         "cita/ecommerce": "dev-develop",
         "diversen/image-auto-rotate": "^1.0",
-        "pelago/emogrifier": "^6.0"
+        "pelago/emogrifier": "^6.0",
+        "aws/aws-sdk-php": "^3.298"
     },
     "require-dev": {
         "phpunit/phpunit": "^5.7"

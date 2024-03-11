@@ -28,7 +28,11 @@ export default {
   },
   SET_ACCESS_TOKEN(state, token) {
     state.access_token = token
-    Cookies.set('accesstoken', token.access_token)
+    if (token) {
+      Cookies.set('accesstoken', token.access_token)
+    } else {
+      Cookies.remove('accesstoken')
+    }
   },
   SET_USER(state, user) {
     state.user = user

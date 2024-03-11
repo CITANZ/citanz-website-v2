@@ -19,6 +19,8 @@ class ReferralOpportunityController extends PageController
 
     const PAGE_SIZE = 10;
 
+    private $job = null;
+
     private static $allowed_actions = [
         'doApply' => true
     ];
@@ -34,8 +36,11 @@ class ReferralOpportunityController extends PageController
         if (isset($_COOKIE['accesstoken'])) {
             $this->user = $this->getUserByToken($_COOKIE['accesstoken']);
         }
-    }
 
+        if (!$this->user && !empty($this->request->param('Action'))) {
+            return $this->httpError(404);
+        }
+    }
 
     public function doApply()
     {
@@ -96,21 +101,65 @@ class ReferralOpportunityController extends PageController
 
     public function getTitle()
     {
+        if ($this->job) {
+            return $this->job->Title;
+        }
+
         return '人人有砖搬';
     }
 
     public function index()
     {
+        $action = $this->request->param('Action');
+        $id = $this->request->param('ID');
+        $id = (int) str_replace('referral-opportunity-', '', $id);
+
+        if ($action && !$id) {
+            return $this->redirect('/referral-opportunities');
+        }
+
+        if (!empty($action) && !empty($id)) {
+            $this->job = ReferralOpportunity::get()->filter(['ValidUntil:GreaterThanOrEqual' => time()])->byID($id);
+            if (empty($this->job)) {
+                return $this->httpError(404);
+            }
+        }
+
         return $this->renderWith(['Page']);
     }
 
     public function getData()
     {
-        $content = SiteConfig::current_site_config()->ReferralComingSoonImage()->exists()
-            && (!$this->user || $this->user->CitaID != 'CITANZ-0003')
-            ? ('<p>&nbsp;</p><p>Calling all CITANZ members! Want to <strong>power up your network and level up your peers\' careers?</strong> Our brand-new referral platform is about to launch, connecting you with sizzling IT jobs posted by fellow CITANZ members.</p><p>Think <strong>dream gigs, community cred, and skyrocketing referral rep</strong>, all while building a stronger IT ecosystem.  Stay tuned – the future of collaboration is about to go online! ✨</p><p><img src="' . SiteConfig::current_site_config()->ReferralComingSoonImage()->URL . '" alt="coming soon image" width="600" /></p>')
+        $action = $this->request->param('Action');
+        $id = $this->request->param('ID');
+        $id = (int) str_replace('referral-opportunity-', '', $id);
+
+        if (!empty($action) && $this->hasMethod($action)) {
+            if (!empty($id)) {
+                $this->job = ReferralOpportunity::get()->filter(['ValidUntil:GreaterThanOrEqual' => time()])->byID($id);
+            }
+
+            return $this->$action();
+        }
+
+        $content = !$this->user
+            ? ('<p>&nbsp;</p><p>Calling all CITANZ members! Want to <strong>power up your network, level up your peers\' careers, and earn extra $$$ from your companies\' finder\'s fee policy?</strong> Our brand-new referral platform is about to launch, connecting you with sizzling IT jobs posted by fellow CITANZ members.</p><p>Think <strong>dream gigs, community cred, and skyrocketing referral rep</strong>, all while building a stronger IT ecosystem!</p><p>CITANZ\'s referral programme is now in beta✨. Please <a href="/member/me">sign in</a> to view the opportunities.</p>')
             : null
         ;
+
+        $list = $this->getJobList();
+
+        if ($this->user) {
+            if (!$this->user->CanViewListing) {
+                $content = '<h2 class="mb-4">You are not a paid member or alumni.</h2><p>The referral opporunities are member-only, thanks for understanding!</p>';
+            } elseif (empty($list['list'])) {
+                if ($this->user->CanCreateReferralOpportunities) {
+                    $content = '<h2 class="mb-4">We don\'t have any referral opporunities listed just yet.</h2><p>Want to <a href="/member/referralopportunities">post one</a>?</p>';
+                } elseif ($this->user->CanViewListing) {
+                    $content = '<h2 class="mb-4">We don\'t have any referral opporunities listed just yet.</h2><p>Please check back later 👋</p>';
+                }
+            }
+        }
 
         return array_merge(
             Page::create()->Data,
@@ -124,20 +173,20 @@ class ReferralOpportunityController extends PageController
                 'content' => $content,
                 'pagetype' => 'ReferralsPage',
             ],
-            $this->getJobList(),
+            $list,
         );
     }
 
     private function getJobList()
     {
-        if (!$this->user) {
+        if (!$this->user || !$this->user->isValidMembership()) {
             return [
                 'list' => null,
                 'pages' => 0,
             ];
         }
 
-        $page = (int) $this->request->getVar('page') -1;
+        $page = (int) $this->request->getVar('page') - 1;
         $page = $page <= 0 ? 0 : $page;
         $list = ReferralOpportunity::get()
             ->filter([
@@ -152,5 +201,24 @@ class ReferralOpportunityController extends PageController
             'list' => array_map(fn($item) => $item->TileDataPublic, $list->toArray()),
             'pages' => ceil($count / static::PAGE_SIZE),
         ];
+    }
+
+    private function view()
+    {
+        if (!$this->user || !$this->job || !$this->user->CanViewListing) {
+            return $this->httpError(404);
+        }
+
+        return array_merge(
+            $this->job->Data,
+            Page::create()->Data,
+            [
+                'title' => $this->job->Title,
+                'content' => $this->job->JobDescription,
+                'pagetype' => 'ReferralPage',
+                'id' => $this->job->ID,
+                'hasApplied' => $this->user->JobApplications()->filter(['JobID' => $this->job->ID])->exists(),
+            ],
+        );
     }
 }

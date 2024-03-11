@@ -215,6 +215,27 @@ class Member extends RestfulController
         $addressData = json_decode($data['Address'], true);
         unset($data['Address']);
 
+        $data['DeletingCV'] = filter_var($data['DeletingCV'], FILTER_VALIDATE_BOOLEAN);
+        $data['DeletingCL'] = filter_var($data['DeletingCL'], FILTER_VALIDATE_BOOLEAN);
+
+        if ($data['DeletingCV'] === true) {
+            $data['CV'] = null;
+        } elseif (!empty($data['CV'])) {
+            $cvSegments = explode('/', $data['CV']);
+            $data['CV'] = $cvSegments[count($cvSegments) - 1];
+        } else {
+            unset($data['CV']);
+        }
+
+        if ($data['DeletingCL'] === true) {
+            $data['CoverLetter'] = null;
+        } elseif (!empty($data['CoverLetter'])) {
+            $clSegments = explode('/', $data['CoverLetter']);
+            $data['CoverLetter'] = $clSegments[count($clSegments) - 1];
+        } else {
+            unset($data['CoverLetter']);
+        }
+
         $this->user->update($data)->write();
         $this->user->updateAddress($addressData);
 

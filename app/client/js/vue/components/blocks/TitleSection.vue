@@ -1,7 +1,7 @@
 <template>
-  <section :class="['section title-section', {'d-sr-only': srOnly}]">
+  <section :class="['section title-section', { 'd-sr-only': srOnly }, { 'pb-4': site_data.pagetype == 'ReferralPage' }]">
     <v-container>
-      <v-row>
+      <v-row :align="site_data.pagetype == 'ReferralPage' ? 'end' : null">
         <v-col cols="12" md="7">
           <h1>{{ site_data.title }}</h1>
         </v-col>

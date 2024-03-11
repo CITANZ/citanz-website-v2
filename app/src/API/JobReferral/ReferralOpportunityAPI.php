@@ -11,6 +11,10 @@ use App\Web\Traits\OAuthTrait;
 use SilverStripe\Core\Environment;
 use App\Web\JobReferral\Model\ReferralOpportunity;
 use App\Web\Model\Company;
+use App\Web\JobReferral\Model\JobApplication;
+use App\Web\Email\JobApplicationNotification;
+use Aws\S3\S3Client;
+use Aws\S3\Exception\S3Exception;
 
 class ReferralOpportunityAPI extends RestfulController
 {
@@ -18,8 +22,10 @@ class ReferralOpportunityAPI extends RestfulController
 
     CONST ALLOWED_TAGS = '<p><ul><ol><li><img><a><strong><table><tr><td><dl><dt><dd><em><u><b><i><span>';
 
-    private const ANONYMOUS_METHODS = [
+    private const ALLOWED_POST_METHODS = [
         'createJobOpportunity',
+        'applyForReferralJob',
+        'viewJobPage',
     ];
 
     private $user = null;
@@ -90,11 +96,116 @@ class ReferralOpportunityAPI extends RestfulController
 
         $action = $request->param('action');
 
-        if (in_array($action, static::ANONYMOUS_METHODS)) {
+        if (in_array($action, static::ALLOWED_POST_METHODS)) {
             return $this->$action($request);
         }
 
         return $this->httpError(401, 'Unauthorised');
+    }
+    
+    private function viewJobPage(&$request)
+    {
+        $id = $request->param('ID');
+        if ($id && ($job = ReferralOpportunity::get()->byID($id))) {
+            $job->TimesViewed += 1;
+            $job->write();
+        }
+    }
+
+    private function applyForReferralJob(&$request)
+    {
+        $jobId = (int) $request->postVar('JobId');
+
+        if (empty($jobId)) {
+            return $this->httpError(400, 'Missing job id');
+        }
+
+        $UseExistingCV = $request->postVar('UseExistingCV');
+        $UseExistingCL = $request->postVar('UseExistingCL');
+        $UseExistingCV = !empty($UseExistingCV ) ? filter_var($UseExistingCV, FILTER_VALIDATE_BOOLEAN) : false;
+        $UseExistingCL = !empty($UseExistingCL ) ? filter_var($UseExistingCL, FILTER_VALIDATE_BOOLEAN) : false;
+        $CV = $request->postVar('UploadedCV');
+        $CL = $request->postVar('UploadedCL');
+
+        if (
+            (!$UseExistingCV && empty($CV))
+            || (!$UseExistingCL && empty($CL))
+        ) {
+            return $this->httpError(400, 'Missing CV or cover letter');
+        }
+
+        $job = ReferralOpportunity::get()->byID($jobId);
+
+        if (!$job->IsAppliable) {
+            return $this->httpError(404, 'Job already expired: ' . $job->ValidUntil);
+        }
+
+        $application = JobApplication::create()->update([
+            'CoverLetter' => $request->postVar(''),
+            'CV' => $request->postVar(''),
+            'FirstName' => $request->postVar('FirstName'),
+            'LastName' => $request->postVar('LastName'),
+            'Email' => $request->postVar('Email'),
+            'LinkedIn' => $request->postVar('LinkedIn'),
+            'WechatID' => $request->postVar('WechatID'),
+            'Phone' => $request->postVar('Phone'),
+            'Github' => $request->postVar('Github'),
+            'ApplicantID' => $this->user->ID,
+            'JobID' => $jobId,
+        ]);
+
+        $application->write();
+        
+        $email = JobApplicationNotification::create($application);
+        
+        if (!empty($CV)) {
+            $email->addAttachment($CV['tmp_name'], $CV['name'], $CV['type']);
+        }
+
+        if (!empty($CL)) {
+            $email->addAttachment($CL['tmp_name'], $CL['name'], $CL['type']);
+        }
+
+        $bucketBaseUrl = "https://citanz.s3.ap-southeast-2.amazonaws.com/{$this->user->GUID}/";
+
+        if ($UseExistingCV && !empty($this->user->CV)) {
+            $awsCV = $this->getS3FileData("{$this->user->GUID}/{$this->user->CV}");
+            $email->addAttachmentFromData($awsCV['data'], $awsCV['name']);
+        }
+        
+        if ($UseExistingCL && !empty($this->user->CoverLetter)) {
+            $awsCL = $this->getS3FileData("{$this->user->GUID}/{$this->user->CoverLetter}");
+            $email->addAttachmentFromData($awsCL['data'], $awsCL['name']);
+        }
+
+        $email->send();
+    }
+
+    private function getS3FileData($key)
+    {
+        $s3 = new S3Client([
+            'region'  => Environment::getEnv('AWS_REGION'),
+            'credentials' => [
+                'key' => Environment::getEnv('AWS_ACCESS_KEY_ID'),
+                'secret' => Environment::getEnv('AWS_SECRET_ACCESS_KEY'),
+            ],
+        ]);
+
+        try {
+            $result = $s3->GetObject([
+                'Bucket' => Environment::getEnv('AWS_BUCKET_NAME'),
+                'Key'    => $key,
+            ]);
+
+            $meta = $result->get('Metadata');
+
+            return [
+                'data' => (string) $result->get('Body'),
+                'name' => $meta['original-filename'],
+            ];
+        } catch (S3Exception $e) {
+            echo "There was an error uploading the file.\n";
+        }
     }
 
     private function updateJobOpportunity(&$request)
@@ -110,6 +221,8 @@ class ReferralOpportunityAPI extends RestfulController
                     $desc = trim($data->job_desc);
                     $faqs = $data->faqs;
                     $until = $data->until;
+                    $workLocation = $data->work_location;
+                    $wtr = (bool) $data->wtr;
 
                     if (empty($title) || empty($desc)) {
                         return $this->httpError(400, '你提交啥了？啥也没有噢 - 再想想');
@@ -138,6 +251,9 @@ class ReferralOpportunityAPI extends RestfulController
                         'FAQs' => $faqs,
                         'CompanyID' => $companyId,
                         'PostedByID' => $this->user->ID,
+                        'ValidUntil' => strtotime($until),
+                        'WorkLocation' => $workLocation,
+                        'WTR' => $wtr,
                     ])->write();
                     
                     return [
@@ -148,7 +264,7 @@ class ReferralOpportunityAPI extends RestfulController
                 return $this->httpError(403, 'You do not have permission to update this listing');
             }
 
-            return $data;
+            return $this->httpError(400, 'Missing job listing ID');
         } catch (\Exception $e) {
             return $this->httpError(400);
         }
@@ -159,7 +275,7 @@ class ReferralOpportunityAPI extends RestfulController
         if ($id = $request->param('ID')) {
             $id = (int) str_replace('referral-opportunity-', '', $id);
             if ($listing = $this->user->ListedJobs()->byID($id)) {
-                $listing->delete();
+                $listing->update(['Deleted' => true])->write();
                 return [
                     'message' => 'Job listing has been removed',
                 ];
@@ -193,6 +309,8 @@ class ReferralOpportunityAPI extends RestfulController
         $desc = trim($request->postVar('job_desc'));
         $faqs = $request->postVar('faqs');
         $until = $request->postVar('until');
+        $workLocation = $request->postVar('work_location');
+        $wtr = (bool) $request->postVar('wtr');
 
         if (empty($title) || empty($desc)) {
             return $this->httpError(400, '你提交啥了？啥也没有噢 - 再想想');
@@ -228,6 +346,8 @@ class ReferralOpportunityAPI extends RestfulController
             'FAQs' => $faqs,
             'CompanyID' => $companyId,
             'PostedByID' => $this->user->ID,
+            'WorkLocation' => $workLocation,
+            'WTR' => $wtr,
         ]);
 
         if (!empty($until)) {

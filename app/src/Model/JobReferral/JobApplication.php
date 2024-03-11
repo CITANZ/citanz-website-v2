@@ -2,7 +2,6 @@
 
 namespace App\Web\JobReferral\Model;
 
-use SilverStripe\Assets\File;
 use SilverStripe\ORM\DataObject;
 use Cita\eCommerce\Model\Customer;
 
@@ -20,11 +19,17 @@ class JobApplication extends DataObject
      */
     private static string $table_name = 'JobApplication';
     
-    private static array $db = [];
+    private static array $db = [
+        'FirstName' => 'Varchar(16)',
+        'LastName' => 'Varchar(16)',
+        'Email' => 'Varchar(255)',
+        'LinkedIn' => 'Varchar(1024)',
+        'WechatID' => 'Varchar(128)',
+        'Phone' => 'Varchar(32)',
+        'Github' => 'Varchar(32)',
+    ];
 
     private static array $has_one = [
-        'CoverLetter' => File::class,
-        'Resume' => File::class,
         'Job' => ReferralOpportunity::class,
         'Applicant' => Customer::class,
     ];

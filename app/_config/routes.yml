@@ -19,4 +19,4 @@ SilverStripe\Control\Director:
     'api/v/1/sd-application/$action': 'App\Web\API\StudentDiscountApplication'
     'api/v/1/job-referral/$action/$ID': 'App\Web\JobReferral\API\ReferralOpportunityAPI'
     'member/$action/$id': 'App\Web\Page\MemberCentreController'
-    'referral-opportunities/$action/$id': 'App\Web\Layout\ReferralOpportunityController'
+    'referral-opportunities/$Action/$ID': 'App\Web\Layout\ReferralOpportunityController'

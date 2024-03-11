@@ -83,6 +83,21 @@
         </v-list-item-action>
       </template>
     </v-autocomplete>
+    <v-row>
+      <v-col cols="12" md="6">
+        <v-combobox
+          v-model="workLocation"
+          :items="presetLocations"
+          label="Work location"
+        ></v-combobox>
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-checkbox
+          v-model="canWtr"
+          label="can apply for RV"
+        ></v-checkbox>
+      </v-col>
+    </v-row>
     <div class="tiny-mce-holder mb-4">
       <p class="mb-2">Job Description</p>
       <tinymce
@@ -188,6 +203,8 @@ export default {
       showCalendar: false,
       linkModalOn: false,
       companyTimer: null,
+      workLocation: null,
+      canWtr: false,
     }
   },
   computed: {
@@ -205,6 +222,29 @@ export default {
       return window.innerHeight / 3
     },
     typeInterval () { return 300 } , //ms
+    presetLocations () {
+      return [
+        'Fully remote',
+        'Hybrid',
+        'Auckland',
+        'Christchurch',
+        'Wellington',
+        'Hamilton',
+        'Tauranga',
+        'Dunedin',
+        'Palmerston North',
+        'Whangārei',
+        'Nelson',
+        'New Plymouth',
+        'Hastings',
+        'Rotorua',
+        'Napier',
+        'Invercargill',
+        'Kāpiti Coast',
+        'Whanganui',
+        'Gisborn',
+      ]
+    },
   },
   watch: {
     search (val, old) {
@@ -273,6 +313,8 @@ export default {
           this.jobDescription = resp.data.description
           this.faqs = resp.data.faqs?.replace(/(<([^>]+)>)/gi, '')
           this.validUntil = new Date(resp.data.until).toISOString().substring(0, 10)
+          this.workLocation = resp.data.workLocation
+          this.canWtr = resp.data.wtr
 
           if (this.faqs?.length) {
             this.showFaqsField = true
@@ -348,6 +390,12 @@ export default {
         data.append('until', this.validUntil)
       }
 
+      if (this.workLocation?.length) {
+        data.append('work_location', this.workLocation)
+      }
+
+      data.append('wtr', this.canWtr)
+
       this
         .post({
           path: '/api/v/1/job-referral/createJobOpportunity',
@@ -404,7 +452,9 @@ export default {
             job_title: this.jobTitle, 
             job_desc: this.jobDescription, 
             faqs: this.faqs, 
-            until: this.validUntil, 
+            until: this.validUntil,
+            work_location: this.workLocation,
+            wtr: this.canWtr,
           },
           headers: {
             headers: { Authorization: `Bearer ${this.access_token.access_token}` },

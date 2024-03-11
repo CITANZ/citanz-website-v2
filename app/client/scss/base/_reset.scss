@@ -20,7 +20,7 @@ a {
 
   &:hover,
   &:focus {
-    &:not(.primary) {
+    &:not(.primary):not(.secondary) {
       color: var(--orange);
     }
   }

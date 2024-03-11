@@ -4,7 +4,7 @@
       <v-col>
         <h2 class="mb-4">Referral Opportunities</h2>
       </v-col>
-      <v-col v-if="canShowUI" cols="auto">
+      <v-col v-if="canListJobs" cols="auto">
         <v-btn
           color="primary"
           @click.prevent="dialog = !dialog"
@@ -22,11 +22,12 @@
       rounded
       height="6"
     ></v-progress-linear>
-    <div class="not-eligible-message" v-else-if="!canShowUI">
+    <div class="not-eligible-message" v-else-if="!canListJobs">
       <p>You are not eligible to use this feature. Please talk to CITANZ's officers to get approval</p>
     </div>
     <template v-else>
-      <v-data-table          
+      <v-data-table
+        v-if="sectionData.list?.length"
         :headers="headers"
         :items="sectionData.list"
         sort-by="date"
@@ -51,12 +52,13 @@
         </template>
       </v-data-table>
       <v-pagination
-        v-if="sectionData && canShowUI"
+        v-if="sectionData && canListJobs && sectionData.list?.length"
         v-model="page"
         class="my-4"
         :length="sectionData.pages"
         :total-visible="5"
       ></v-pagination>
+      <p>You haven't uploaded any referral Opportunities. Click the <span class="v-btn v-btn--has-bg theme--light v-size--x-small primary"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate v-icon--left mdi mdi-plus theme--light mx-0"></i></span>Create</span> button to add one</p>
     </template>
     <v-dialog
       v-model="dialog"
@@ -129,8 +131,8 @@
           { text: 'Actions', align: 'end', value: 'actions', sortable: false },
         ]
       },
-      canShowUI () {
-        return this.user?.citaID == 'CITANZ-0003'
+      canListJobs () {
+        return this.user?.canListJob
       }
     },
     methods: {
@@ -161,7 +163,7 @@
             .sectionData
             .list
             .forEach(x => {
-              x.until = dayjs(x.until).format('DD/MM/YYYY') 
+              x.until = dayjs(x.until).format('DD/MM/YYYY')
             });
         })
       },

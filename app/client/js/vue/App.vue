@@ -26,6 +26,7 @@ import Header from './components/blocks/Header'
 import Mailchimp from './components/blocks/Mailchimp'
 import Footer from './components/blocks/Footer'
 import { mapGetters, mapActions } from 'vuex'
+import Cookies from 'js-cookie'
 
 export default {
   name: 'App',
@@ -42,6 +43,7 @@ export default {
   },
   watch: {
     $route(to) {
+      this.refreshCookie()
       this.toggleSigninForm(false)
       this.setMemberMenuShown(false)
       if (!this.skipFetchOnce) {
@@ -61,7 +63,7 @@ export default {
     },
   },
   created() {
-    if (location.pathname == '/referral-opportunities' && this.site_data) {
+    if ((location.pathname == '/referral-opportunities' || location.pathname.startsWith('/referral-opportunities/')) && this.site_data) {
       const referralItem = this.site_data.navigation.find(x => x.url == '/referral-opportunities')
       referralItem.active = true
     }
@@ -94,6 +96,11 @@ export default {
       'setMemberMenuShown',
       'toggleSigninForm',
     ]),
+    refreshCookie () {
+      if (this.access_token?.access_token && !Cookies.get('accesstoken')) {
+        Cookies.set('accesstoken', this.access_token.access_token)
+      }
+    },
     handleWindowResize() {
       this.setWidth(document.body.offsetWidth)
     },
