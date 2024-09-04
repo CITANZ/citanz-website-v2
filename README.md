@@ -6,7 +6,7 @@
 
 ### 咋弄？
 ```
-composer instsall
+composer install
 ```
 
 ## 前端
