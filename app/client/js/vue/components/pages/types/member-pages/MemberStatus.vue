@@ -40,7 +40,7 @@
         <v-divider class="mt-4 mb-5"></v-divider>
         <h3 class="mb-3">Student Discount</h3>
         <p><small>Since you've claimed yourself as a student, here is a good news for you:</small></p>
-        <p>CITANZ offers a <strong>50% off discount</strong> to students on our membership.</p>
+        <p>CITANZ offers a <strong>25% off discount</strong> to students on our membership.</p>
         <p v-if="!user.hasPendingStudentApplication">To become a verified student and get the 50% discount, please submit a photo of the student ID.</p>
         <v-form
           v-if="!user.hasPendingStudentApplication"

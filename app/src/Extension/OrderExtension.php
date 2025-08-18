@@ -10,6 +10,7 @@ use Cita\eCommerce\Model\Customer;
 use SilverStripe\Control\Email\Email;
 use SilverStripe\Core\Environment;
 use SilverStripe\SiteConfig\SiteConfig;
+use Cita\eCommerce\Service\PaymentService;
 
 /**
  * @file SiteConfigExtension
@@ -76,12 +77,18 @@ class OrderExtension extends DataExtension
                         }
                     }
 
-                    $member->update([
+                    $member = $member->update([
                         'CitaID' => $citaId,
                         'Expiry30Reminded' => false,
                         'Expiry7Reminded' => false,
                         'Expiry0Reminded' => false,
-                    ])->write();
+                    ]);
+
+                    if (empty($member->MemberSince)) {
+                        $member->MemberSince = date('Y-m-d');
+                    }
+
+                    $member->write();
 
                     if ($isNew) {
                         $member->sendMemberInductionKit();
@@ -148,5 +155,18 @@ MSG;
         }, $this->owner->Variants()->toArray());
 
         return implode("\n", $items);
+    }
+
+    public function doRefund()
+    {
+        if (($this->owner->Status == 'Payment Received' ||
+            $this->owner->Status == 'Shipped' ||
+            $this->owner->Status == 'Completed') &&
+            $payment = $this->owner->getSuccessPayment()
+        ) {
+            $response = PaymentService::refund('Stripe', $payment);
+            $this->owner->Status  =   'Refunded';
+            $this->owner->write();
+        }
     }
 }

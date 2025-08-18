@@ -27,6 +27,7 @@ use Leochenftw\Util;
 use App\Web\JobReferral\Model\JobApplication;
 use App\Web\JobReferral\Model\ReferralOpportunity;
 use SilverStripe\Core\Environment;
+use DateTime;
 
 /**
  * @file SiteConfigExtension
@@ -55,6 +56,8 @@ class CustomerExtension extends DataExtension
         'Expiry0Reminded' => 'Boolean', // on the expiry date
         'CV' => 'Varchar(1024)',
         'CoverLetter' => 'Varchar(1024)',
+        'MemberSince' => 'Date',
+        'OffRecordPaymentCount' => 'Int',
     ];
 
     private static $default_sort = ['CitaID' => 'ASC'];
@@ -81,6 +84,7 @@ class CustomerExtension extends DataExtension
         'LastSubscriptionPaymentDate' => 'Last Payment Date',
         'MyRegion' => 'Region',
         'MyCity' => 'City',
+        'WechatID' => 'WeChat',
     ];
 
     private static $has_many = [
@@ -126,13 +130,27 @@ class CustomerExtension extends DataExtension
             'canRenew' => $this->owner->canRenew(),
             'isPaidMember' => $this->owner->isValidMembership(),
             'expiry' => date('d/m/Y', strtotime($this->owner->Expiry)),
+            'memberSince' => (!empty($this->owner->MemberSince) ? strtotime($this->owner->MemberSince) : time()) * 1000,
             'usedToBeAMember' => $this->owner->usedToBeAMember(),
             'isStudent' => $this->owner->isStudent ? true : false,
             'isRealStudent' => $this->owner->isRealStudent(),
             'addressMissing' => $this->owner->Addresses()->first() ? empty($this->owner->Addresses()->first()->Address) : true,
             'canListJob' => (bool) $this->owner->CanCreateReferralOpportunities,
             'hasPendingStudentApplication' => $this->owner->StudentDiscountApplications()->filter(['Approved' => false, 'Rejected' => false])->exists(),
+            'yearsBeingMember' => $this->owner->YearsBeingMember,
         ];
+    }
+
+    public function getYearsBeingMember()
+    {
+        if ($this->owner->NeverExpire) {
+            $currentDate = new DateTime();
+            $since = new DateTime($this->owner->MemberSince ?? '2018-10-01');
+            $interval = $currentDate->diff($since);
+            return $interval->y;
+        }
+
+        return $this->owner->OffRecordPaymentCount + $this->owner->Orders()->filter(['Status' => 'Completed'])->count();
     }
 
     public function updateAddress($data)
@@ -167,6 +185,12 @@ class CustomerExtension extends DataExtension
             'cv' => !empty($cv) ? "{$s3BaseUrl}{$guid}/{$cv}" : null,
             'cl' => !empty($cl) ? "{$s3BaseUrl}{$guid}/{$cl}" : null,
         ];
+    }
+
+    public function updateMemberSince($date = null)
+    {
+        $this->owner->MemberSince = $date ?? date('Y-m-d');
+        $this->owner->write();
     }
 
     public function getCanViewListing()
@@ -259,7 +283,7 @@ class CustomerExtension extends DataExtension
         $email = Email::create($from, $to, $subject);
 
         if (Director::isLive()) {
-            $email->setBCC(Config::inst()->get(Email::class, 'admin_email'));
+            $email->setBCC([Config::inst()->get(Email::class, 'admin_email'), 'membership@cita.org.nz']);
         }
 
         $email->setHTMLTemplate('Email\\InductionKit');

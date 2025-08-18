@@ -15,7 +15,7 @@
       v-model="password"
       :append-icon="exposePassword ? 'mdi-eye' : 'mdi-eye-off'"
       :type="exposePassword ? 'text' : 'password'"
-      label="Pasword"
+      label="Password"
       required
       @click:append="exposePassword = !exposePassword"
     ></v-text-field>

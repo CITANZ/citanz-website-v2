@@ -4,6 +4,7 @@ namespace App\Web\Task;
 use SilverStripe\Dev\Debug;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\Control\Email\Email;
+use Cita\eCommerce\Model\Customer;
 
 class EmailTest extends BuildTask
 {
@@ -35,8 +36,7 @@ class EmailTest extends BuildTask
     public function run($request)
     {
         $args = $request->getVars('args');
-
-        if (!empty($args)) {
+        if (!empty($args) && !empty($args['args'])) {
             $email = $args['args'][0];
 
             $this->sendTestEmail($email);
@@ -44,7 +44,19 @@ class EmailTest extends BuildTask
             return;
         }
 
+        $this->testDummyInductionKit();
+
         Debug::dump('Email?');
+    }
+
+    private function testDummyInductionKit()
+    {
+        if ($member = Customer::get()->filter(['Email' => 'alex.zige+tester@gmail.com'])->first()) {
+            $member->sendMemberInductionKit();
+            return;
+        }
+
+        echo 'Customer not found' . PHP_EOL;
     }
 
     private function sendTestEmail($recipient)
