@@ -209,9 +209,25 @@ class Member extends RestfulController
         return $result;
     }
 
+    /**
+     * Fields a member may change on their own profile (what ProfileForm.vue sends).
+     * Everything else on Customer (Expiry, Verified, NeverExpire, CitaID, GUID,
+     * MemberSince, OffRecordPaymentCount, CanCreateReferralOpportunities, Password,
+     * reminder flags, ...) is set by the system or by admins only.
+     */
+    private static $profile_fields = [
+        'FirstName', 'LastName', 'Email', 'Phone', 'Dob', 'Gender', 'isStudent',
+        'Organisation', 'Degree', 'Major', 'TitleLevel', 'JobCategory',
+        'WechatID', 'LinkedInLink', 'Github', 'CV', 'CoverLetter',
+        'DeletingCV', 'DeletingCL', 'Address',
+    ];
+
     public function setProfile(&$request)
     {
-        $data = $request->postVars();
+        $data = array_intersect_key(
+            $request->postVars(),
+            array_flip(static::config()->get('profile_fields'))
+        );
         $addressData = json_decode($data['Address'], true);
         unset($data['Address']);
 

@@ -133,7 +133,11 @@ class SiteConfigExtension extends DataExtension
             'mailchimp'     =>  [
                 'title'     =>  $this->owner->SubscriptionTitle,
                 'content'   =>  str_replace("\n", "<br />", $this->owner->SubscriptionContent),
-                'config'    =>  $this->owner->get_mailchimp_config()
+                // Only what the browser needs. The API key and list endpoint stay
+                // server-side (SubscriptionAPI reads get_mailchimp_config() itself).
+                'config'    =>  [
+                    'fallback_url'  =>  $this->owner->MailchimpURL
+                ]
             ]
         ];
     }
