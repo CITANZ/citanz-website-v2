@@ -5,10 +5,14 @@ Leochenftw\Restful\RestfulController:
   https_only: true
 
 ---
+Name: restful_api_dev
+After: '#restful_api'
 Only:
   environment: 'dev'
 ---
 Leochenftw\Restful\RestfulController:
+  # local docker runs plain http://localhost:8080 (dev environment only)
+  https_only: false
   CORSOrigin: 'https://localhost:8080'
   CORSOrigins:
     - 'https://localhost:8081'
