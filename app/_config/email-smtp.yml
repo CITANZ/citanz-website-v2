@@ -1,0 +1,19 @@
+---
+Name: app-email-smtp
+After: '#emailconfig'
+Only:
+  envvarset: SS_SMTP_HOST
+---
+# Send mail through SMTP (AWS SES in dev and production) when SS_SMTP_HOST is set.
+# Without it, SilverStripe's default (local sendmail) stays as before.
+# Values come from the environment; secrets live in Parameter Store, never in git.
+SilverStripe\Core\Injector\Injector:
+  Swift_Transport:
+    class: Swift_SmtpTransport
+    constructor:
+      host: '`SS_SMTP_HOST`'
+      port: '`SS_SMTP_PORT`'
+      encryption: '`SS_SMTP_ENCRYPTION`'
+    properties:
+      Username: '`SS_SMTP_USERNAME`'
+      Password: '`SS_SMTP_PASSWORD`'

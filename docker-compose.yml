@@ -47,6 +47,13 @@ services:
       timeout: 5s
       retries: 30
 
+  # Local mail catcher: the site sends SMTP here; read the mail at http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit:v1.21
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8025:8025"
+
   # One-off frontend build. Node 14 = what Leo's Dockerfile uses; .nvmrc (12) is stale:
   # templates use optional chaining (?.), which Node 12 cannot compile. Not started by `up`.
   node:
