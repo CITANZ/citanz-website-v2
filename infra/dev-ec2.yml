@@ -1,0 +1,170 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  citanz dev EC2 in citanz-nonprod (stage 1). Own small VPC with one public
+  subnet so the Control Tower VPC is untouched; t3.small, T3 standard credits,
+  Session Manager only (no SSH, no inbound ports), instance profile
+  citanz-dev-ec2 (stack citanz-dev-ec2-role, owned by Alex). Used first for
+  db-check/desensitise, later as dev.cita.org.nz. Delete the stack when done.
+
+Parameters:
+  InstanceType:
+    Type: String
+    Default: t3.small
+    AllowedValues: [t3.micro, t3.small, t3.medium]
+  InstanceProfileName:
+    Type: String
+    Default: citanz-dev-ec2
+  ImageId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+  VolumeSizeGiB:
+    Type: Number
+    Default: 20
+  VpcCidr:
+    Type: String
+    Default: 10.20.0.0/24
+  ComposeVersion:
+    Type: String
+    Default: v2.27.0
+  DomainName:
+    Type: String
+    Default: dev.cita.org.nz
+  HostedZoneId:
+    Type: String
+    Default: Z08755273IMSLT13G5UZ   # dev.cita.org.nz zone in nonprod (delegated from prod by Alex)
+
+Resources:
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags: [{Key: Name, Value: citanz-dev}]
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags: [{Key: Name, Value: citanz-dev}]
+
+  GatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Ref VpcCidr
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags: [{Key: Name, Value: citanz-dev-public}]
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags: [{Key: Name, Value: citanz-dev}]
+
+  DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayAttachment
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  SubnetRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref RouteTable
+
+  # Free; keeps S3 traffic (the dump, assets) off the public internet.
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref Vpc
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      VpcEndpointType: Gateway
+      RouteTableIds: [!Ref RouteTable]
+
+  # Web only (80 for the HTTPS certificate challenge + redirect, 443 for the site).
+  # No SSH: admin access is via Session Manager. The site itself sits behind a
+  # basic-auth password and holds desensitised data only.
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: citanz dev EC2 - web in, all outbound
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 80, ToPort: 80, CidrIp: 0.0.0.0/0, Description: 'http - cert challenge and redirect'}
+        - {IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: 0.0.0.0/0, Description: https}
+      SecurityGroupEgress:
+        - {IpProtocol: '-1', CidrIp: 0.0.0.0/0}
+      Tags: [{Key: Name, Value: citanz-dev}]
+
+  Instance:
+    Type: AWS::EC2::Instance
+    DependsOn: DefaultRoute
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref InstanceProfileName
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds: [!Ref SecurityGroup]
+      CreditSpecification: {CPUCredits: standard}   # no surprise CPU surplus charges
+      MetadataOptions: {HttpTokens: required, HttpEndpoint: enabled}   # IMDSv2 only
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: !Ref VolumeSizeGiB
+            VolumeType: gp3
+            Encrypted: true
+            DeleteOnTermination: true
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euxo pipefail
+          dnf install -y docker git
+          systemctl enable --now docker
+          mkdir -p /usr/local/lib/docker/cli-plugins
+          curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose \
+            https://github.com/docker/compose/releases/download/${ComposeVersion}/docker-compose-linux-x86_64
+          chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+          docker compose version
+      Tags:
+        - {Key: Name, Value: citanz-dev}
+        - {Key: Project, Value: citanz}
+        - {Key: Environment, Value: nonprod}
+        - {Key: ManagedBy, Value: cloudformation}
+
+  # Fixed public IP so the DNS record survives stop/start.
+  ElasticIp:
+    Type: AWS::EC2::EIP
+    DependsOn: GatewayAttachment
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref Instance
+      Tags: [{Key: Name, Value: citanz-dev}]
+
+  DnsRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: A
+      TTL: '300'
+      ResourceRecords: [!Ref ElasticIp]
+
+Outputs:
+  InstanceId:
+    Value: !Ref Instance
+  PublicIp:
+    Value: !Ref ElasticIp
+  Url:
+    Value: !Sub https://${DomainName}
+  ConnectCommand:
+    Value: !Sub aws ssm start-session --profile citanz-nonprod --region ${AWS::Region} --target ${Instance}

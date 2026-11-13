@@ -1,0 +1,21 @@
+# Rendered by scripts/deploy-dev.sh into .local/Caddyfile (not in git).
+__DOMAIN__ {
+	# Site password for dev. The first correct password sets a gate cookie; after
+	# that the cookie lets requests through. A cookie is needed because, once a
+	# member signs in, the front end sends "Authorization: Bearer" on page-data
+	# requests (e.g. /member/me), which replaces the browser's basic-auth header.
+	# /api/* has its own token checks. The browser fetches the web manifest
+	# without credentials, so it is left open too (it holds no data).
+	@gated {
+		not path /api/* /site.webmanifest
+		not header Cookie *citanz_dev_gate=__GATE_TOKEN__*
+	}
+	route @gated {
+		basic_auth {
+			__BASIC_USER__ __BASIC_HASH__
+		}
+		header +Set-Cookie "citanz_dev_gate=__GATE_TOKEN__; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=2592000"
+	}
+	header X-Robots-Tag "noindex, nofollow"
+	reverse_proxy web:80
+}
