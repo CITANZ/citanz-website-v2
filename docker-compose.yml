@@ -1,29 +1,65 @@
-version: "3.8"
+# Local dev stack — stage 1 "as-is": PHP 7.4 + Apache, MySQL 5.7.
+# First run (in this order):
+#   cp .env.example .env            # fake values only, never real secrets
+#   docker compose up -d            # web on http://localhost:8080
+#   docker compose run --rm node    # build frontend (npm ci && npm run prod)
+#   docker compose exec web sh docker/composer-seed/seed.sh   # one dead upstream package, see the script
+#   docker compose exec web composer install                  # also exposes app/client/dist
+#   docker compose exec web vendor/bin/sake dev/build flush=all
+# Real (desensitised) data, needs nonprod SSO: scripts/load-desensitised.sh
+# After a frontend rebuild that adds new dirs: docker compose exec web composer vendor-expose
+name: citanz
+
 services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile
-    restart: always
+      dockerfile: docker/web.Dockerfile
+    restart: unless-stopped
     ports:
-      - 8080:80
+      - "127.0.0.1:8080:80"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
+    env_file: .env
     environment:
-      - DOCUMENT_ROOT=/var/www/html/public
-      - SS_TRUSTED_PROXY_IPS=*
-      - SS_ENVIRONMENT_TYPE=dev
-      - SS_DATABASE_SERVER=database
-      - SS_DATABASE_NAME=basekit
-      - SS_DATABASE_USERNAME=root
-      - SS_DATABASE_PASSWORD=
-      - SS_DEFAULT_ADMIN_USERNAME=admin
-      - SS_DEFAULT_ADMIN_PASSWORD=admin
-      - MAPBOX_TOKEN=pk.eyJ1Ijoic29tYXItZGVzaWduLXN0dWRpb3MiLCJhIjoiY2s1eWJuc2c4MXA5bzNsazBwYTZ6dnM3MiJ9.nReqnpF0FswusJzh405eWw
+      DOCUMENT_ROOT: /var/www/html/public
+      SS_DATABASE_SERVER: database
+    volumes:
+      - .:/var/www/html
+      - composer-cache:/root/.composer/cache
 
   database:
-    image: mysql:8.0
+    image: mysql:5.7
+    platform: linux/amd64
+    restart: unless-stopped
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
     environment:
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      MYSQL_ROOT_PASSWORD: ${SS_DATABASE_PASSWORD}
+      MYSQL_DATABASE: ${SS_DATABASE_NAME}
     ports:
-      - 9306:3306
+      - "127.0.0.1:9306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # One-off frontend build. Node 14 = what Leo's Dockerfile uses; .nvmrc (12) is stale:
+  # templates use optional chaining (?.), which Node 12 cannot compile. Not started by `up`.
+  node:
+    image: node:14
+    profiles: ["build"]
+    user: "${UID:-1000}:${GID:-1000}"   # files in the repo stay owned by you, not root
+    environment:
+      HOME: /tmp
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "npm ci && npm run prod"
+
+volumes:
+  db-data:
+  composer-cache:
