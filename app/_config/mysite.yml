@@ -38,6 +38,33 @@ SilverStripe\Assets\Flysystem\AssetAdapter:
 SilverStripe\Control\Email\Email:
   admin_email: leo@leochen.co.nz
 
+# Fields a member may change on their own profile (what ProfileForm.vue sends).
+# Everything else on Customer (Expiry, Verified, NeverExpire, CitaID, GUID,
+# MemberSince, OffRecordPaymentCount, CanCreateReferralOpportunities, Password,
+# reminder flags, ...) is set by the system or by admins only.
+App\Web\API\Member:
+  profile_fields:
+    - FirstName
+    - LastName
+    - Email
+    - Phone
+    - Dob
+    - Gender
+    - isStudent
+    - Organisation
+    - Degree
+    - Major
+    - TitleLevel
+    - JobCategory
+    - WechatID
+    - LinkedInLink
+    - Github
+    - CV
+    - CoverLetter
+    - DeletingCV
+    - DeletingCL
+    - Address
+
 ---
 Only:
   environment: 'live'

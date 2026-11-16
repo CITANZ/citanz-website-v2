@@ -209,9 +209,18 @@ class Member extends RestfulController
         return $result;
     }
 
+    /**
+     * Fields a member may change on their own profile. The list is set in
+     * app/_config/mysite.yml; empty here, so nothing is accepted if it is missing.
+     */
+    private static $profile_fields = [];
+
     public function setProfile(&$request)
     {
-        $data = $request->postVars();
+        $data = array_intersect_key(
+            $request->postVars(),
+            array_flip(static::config()->get('profile_fields'))
+        );
         $addressData = json_decode($data['Address'], true);
         unset($data['Address']);
 
