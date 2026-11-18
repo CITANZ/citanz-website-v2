@@ -1,0 +1,138 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  citanz production edge, deployed in us-east-1 (CloudFront only accepts
+  certificates and web ACLs from there). Creates the CloudFront certificate,
+  the WAF web ACL and an optional bill alarm. Pass the CertificateArn and
+  WebAclArn outputs to infra/prod.yml in ap-southeast-2.
+
+Parameters:
+  SiteDomainName:
+    Type: String
+    Default: www.cita.org.nz
+    Description: Main site domain (the certificate's subject).
+  ExtraDomainNames:
+    Type: CommaDelimitedList
+    Default: cita.org.nz
+    Description: Other names on the certificate. Must match the CloudFront aliases in prod.yml.
+  HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+    Description: Route 53 zone for the domains, in this account. ACM writes its validation records there.
+  RateLimitPer5Min:
+    Type: Number
+    Default: 1000
+    MinValue: 100
+    Description: Requests per 5 minutes from one IP before WAF blocks it.
+  AlarmEmail:
+    Type: String
+    Default: ''
+    Description: Email for the bill alarm. Leave empty for no alarm.
+  MonthlyBudgetUsd:
+    Type: Number
+    Default: 60
+    Description: Bill alarm fires when this month's estimated charges pass this many USD.
+  EnvironmentName:
+    Type: String
+    Default: production
+    AllowedValues: [production, nonprod-trial]
+    Description: Tag value. nonprod-trial is only for a test build in citanz-nonprod.
+
+Conditions:
+  HasAlarmEmail: !Not [!Equals [!Ref AlarmEmail, '']]
+
+Rules:
+  MustBeUsEast1:
+    Assertions:
+      - Assert: !Equals [!Ref 'AWS::Region', us-east-1]
+        AssertDescription: CloudFront certificates and web ACLs must be in us-east-1.
+
+Resources:
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref SiteDomainName
+      SubjectAlternativeNames: !Ref ExtraDomainNames
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - {DomainName: !Ref SiteDomainName, HostedZoneId: !Ref HostedZoneId}
+        - {DomainName: !Select [0, !Ref ExtraDomainNames], HostedZoneId: !Ref HostedZoneId}
+      Tags: [{Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  # AWS managed rules plus a per-IP rate limit. The size rule on request
+  # bodies only counts: members upload student IDs and CVs, which are
+  # larger than its 8 KB limit.
+  WebAcl:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub citanz-${EnvironmentName}
+      Scope: CLOUDFRONT
+      DefaultAction: {Allow: {}}
+      VisibilityConfig: {SampledRequestsEnabled: true, CloudWatchMetricsEnabled: true, MetricName: !Sub 'citanz-${EnvironmentName}'}
+      Rules:
+        - Name: rate-limit-per-ip
+          Priority: 0
+          Action: {Block: {}}
+          Statement:
+            RateBasedStatement: {Limit: !Ref RateLimitPer5Min, AggregateKeyType: IP}
+          VisibilityConfig: {SampledRequestsEnabled: true, CloudWatchMetricsEnabled: true, MetricName: rate-limit-per-ip}
+        - Name: aws-ip-reputation
+          Priority: 1
+          OverrideAction: {None: {}}
+          Statement:
+            ManagedRuleGroupStatement: {VendorName: AWS, Name: AWSManagedRulesAmazonIpReputationList}
+          VisibilityConfig: {SampledRequestsEnabled: true, CloudWatchMetricsEnabled: true, MetricName: aws-ip-reputation}
+        - Name: aws-common
+          Priority: 2
+          OverrideAction: {None: {}}
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+              RuleActionOverrides:
+                - {Name: SizeRestrictions_BODY, ActionToUse: {Count: {}}}
+          VisibilityConfig: {SampledRequestsEnabled: true, CloudWatchMetricsEnabled: true, MetricName: aws-common}
+        - Name: aws-known-bad-inputs
+          Priority: 3
+          OverrideAction: {None: {}}
+          Statement:
+            ManagedRuleGroupStatement: {VendorName: AWS, Name: AWSManagedRulesKnownBadInputsRuleSet}
+          VisibilityConfig: {SampledRequestsEnabled: true, CloudWatchMetricsEnabled: true, MetricName: aws-known-bad-inputs}
+        - Name: aws-php
+          Priority: 4
+          OverrideAction: {None: {}}
+          Statement:
+            ManagedRuleGroupStatement: {VendorName: AWS, Name: AWSManagedRulesPHPRuleSet}
+          VisibilityConfig: {SampledRequestsEnabled: true, CloudWatchMetricsEnabled: true, MetricName: aws-php}
+      Tags: [{Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  # Billing metrics only exist in us-east-1. Needs "Receive billing alerts"
+  # turned on for the account (Billing preferences); otherwise the alarm
+  # stays INSUFFICIENT_DATA.
+  AlarmTopic:
+    Type: AWS::SNS::Topic
+    Condition: HasAlarmEmail
+    Properties:
+      KmsMasterKeyId: alias/aws/sns
+      Subscription: [{Protocol: email, Endpoint: !Ref AlarmEmail}]
+      Tags: [{Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  BillAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasAlarmEmail
+    Properties:
+      AlarmDescription: !Sub This month's estimated AWS charges passed USD ${MonthlyBudgetUsd}.
+      Namespace: AWS/Billing
+      MetricName: EstimatedCharges
+      Dimensions: [{Name: Currency, Value: USD}]
+      Statistic: Maximum
+      Period: 21600
+      EvaluationPeriods: 1
+      Threshold: !Ref MonthlyBudgetUsd
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlarmTopic]
+
+Outputs:
+  CertificateArn:
+    Value: !Ref Certificate
+  WebAclArn:
+    Value: !GetAtt WebAcl.Arn

@@ -1,0 +1,489 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  citanz production (ap-southeast-2): one t3.small EC2 running the same Docker
+  setup as dev (web + MySQL + Caddy), reachable only through CloudFront and
+  WAF. Session Manager only, no SSH. Encrypted private backup bucket, daily
+  disk snapshots, auto-recovery and alarms. Run after infra/prod-ec2-role.yml
+  (this region) and infra/prod-edge.yml (us-east-1).
+
+Parameters:
+  InstanceType:
+    Type: String
+    Default: t3.small
+    AllowedValues: [t3.small, t3.medium]
+    Description: t3.small (2 GB) runs web + MySQL on dev; t3.medium if production needs more memory.
+  ImageId:
+    Type: AWS::EC2::Image::Id
+    # Pinned on purpose: a changed ImageId replaces the instance. To upgrade,
+    # back up, look up the latest with
+    #   aws ssm get-parameter --name /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+    # and pass it here.
+    Default: ami-013f66a12d3857f32
+    Description: Amazon Linux 2023 AMI, pinned. Changing it replaces the instance.
+  InstanceProfileName:
+    Type: String
+    Default: citanz-prod-ec2
+    Description: Instance profile from infra/prod-ec2-role.yml.
+  SnapshotRoleArn:
+    Type: String
+    Default: ''
+    Description: Role from infra/prod-ec2-role.yml for daily snapshots. Empty = no snapshot policy.
+  VolumeSizeGiB:
+    Type: Number
+    Default: 30
+    MinValue: 20
+    MaxValue: 200
+    Description: Root volume (encrypted gp3). Database, uploads and Docker images live here.
+  VpcCidr:
+    Type: String
+    Default: 10.30.0.0/24
+    AllowedPattern: '^\d{1,3}(\.\d{1,3}){3}/(1[6-9]|2[0-8])$'
+    Description: CIDR for the stack's own small VPC.
+  ComposeVersion:
+    Type: String
+    Default: v2.27.0
+    AllowedPattern: '^v\d+\.\d+\.\d+$'
+    Description: Docker Compose release to install.
+  ComposeSha256:
+    Type: String
+    Default: f3ba3bf1e4ab18e96c2d36526a075a02a78fb5f8e80d3e3ca9c5bf256d81d0a0
+    AllowedPattern: '^[a-f0-9]{64}$'
+    Description: SHA-256 of docker-compose-linux-x86_64 for ComposeVersion. Change both together.
+  SiteDomainNames:
+    Type: CommaDelimitedList
+    Default: www.cita.org.nz,cita.org.nz
+    Description: CloudFront aliases; must be on the certificate from prod-edge.yml.
+  OriginDomainName:
+    Type: String
+    Default: origin.cita.org.nz
+    Description: >-
+      Name CloudFront uses to reach the server; an A record is created. The
+      server only accepts CloudFront, so this name is useless to visitors.
+  HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+    Description: Zone for OriginDomainName. The site names themselves are switched over by hand at cutover.
+  CertificateArn:
+    Type: String
+    AllowedPattern: '^arn:aws:acm:us-east-1:\d{12}:certificate/.+$'
+    Description: CertificateArn output of prod-edge.yml (us-east-1).
+  WebAclArn:
+    Type: String
+    AllowedPattern: '^arn:aws:wafv2:us-east-1:\d{12}:global/webacl/.+$'
+    Description: WebAclArn output of prod-edge.yml (us-east-1).
+  CloudFrontPrefixListId:
+    Type: String
+    Default: pl-b8a742d1
+    AllowedPattern: '^pl-[0-9a-f]+$'
+    Description: com.amazonaws.global.cloudfront.origin-facing in ap-southeast-2.
+  BackupRetentionDays:
+    Type: Number
+    Default: 35
+    MinValue: 7
+    Description: Days to keep nightly database and file backups.
+  AlarmEmail:
+    Type: String
+    Default: ''
+    Description: Email for server alarms. Empty = alarms act but send no email.
+  ParameterPath:
+    Type: String
+    Default: /citanz/prod
+    AllowedPattern: '^/citanz/[a-z]+$'
+    Description: Parameter Store path the server reads (scripts/deploy-prod.sh PARAM_PATH).
+  EnvironmentName:
+    Type: String
+    Default: production
+    AllowedValues: [production, nonprod-trial]
+    Description: Tag and name suffix. nonprod-trial is only for a test build in citanz-nonprod.
+
+Conditions:
+  HasSnapshotRole: !Not [!Equals [!Ref SnapshotRoleArn, '']]
+  HasAlarmEmail: !Not [!Equals [!Ref AlarmEmail, '']]
+  IsProduction: !Equals [!Ref EnvironmentName, production]
+
+Resources:
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags: [{Key: Name, Value: !Sub 'citanz-${EnvironmentName}'}, {Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags: [{Key: Name, Value: !Sub 'citanz-${EnvironmentName}'}, {Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  GatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Ref VpcCidr
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true   # outbound works at first boot, before the Elastic IP is attached
+      Tags: [{Key: Name, Value: !Sub 'citanz-${EnvironmentName}-public'}, {Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags: [{Key: Name, Value: !Sub 'citanz-${EnvironmentName}'}, {Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayAttachment
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  SubnetRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref RouteTable
+
+  # Free; backups go to S3 without crossing the internet.
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref Vpc
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      VpcEndpointType: Gateway
+      RouteTableIds: [!Ref RouteTable]
+
+  # Only CloudFront can reach the server. The CloudFront prefix list counts
+  # as 55 rules against the 60-rule limit of one security group, so the two
+  # ports are in two groups.
+  HttpsFromCloudFront:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: citanz - https from CloudFront only
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 443, ToPort: 443, SourcePrefixListId: !Ref CloudFrontPrefixListId, Description: 'https from CloudFront'}
+      SecurityGroupEgress:
+        - {IpProtocol: '-1', CidrIp: 0.0.0.0/0, Description: 'all outbound - packages, images, AWS APIs, payment and mail APIs'}
+      Tags: [{Key: Name, Value: !Sub 'citanz-${EnvironmentName}-https'}, {Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  # Port 80 only serves Let's Encrypt HTTP-01 challenges, which reach the
+  # server through CloudFront (see the acme-challenge behaviour below).
+  HttpFromCloudFront:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: citanz - http from CloudFront only (certificate challenge)
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 80, ToPort: 80, SourcePrefixListId: !Ref CloudFrontPrefixListId, Description: 'http from CloudFront - certificate challenge'}
+      SecurityGroupEgress:
+        - {IpProtocol: '-1', CidrIp: 0.0.0.0/0, Description: 'all outbound'}
+      Tags: [{Key: Name, Value: !Sub 'citanz-${EnvironmentName}-http'}, {Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  Instance:
+    Type: AWS::EC2::Instance
+    DependsOn: DefaultRoute
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref InstanceProfileName
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds: [!Ref HttpsFromCloudFront, !Ref HttpFromCloudFront]
+      CreditSpecification: {CPUCredits: standard}   # no surprise CPU surplus charges
+      Monitoring: true                               # 1-minute metrics
+      DisableApiTermination: !If [IsProduction, true, false]
+      PropagateTagsToVolumeOnCreation: true
+      # IMDSv2 only. Hop limit 2 lets the web container use the instance role
+      # (mail through the SES API); the deploy script firewalls every other
+      # container away from the metadata service, as on dev.
+      MetadataOptions: {HttpTokens: required, HttpEndpoint: enabled, HttpPutResponseHopLimit: 2}
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: !Ref VolumeSizeGiB
+            VolumeType: gp3
+            Encrypted: true
+            # Kept if the instance or stack is deleted: it holds the database.
+            DeleteOnTermination: false
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euxo pipefail
+          dnf install -y docker git
+          systemctl enable --now docker
+          mkdir -p /usr/local/lib/docker/cli-plugins
+          curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose \
+            https://github.com/docker/compose/releases/download/${ComposeVersion}/docker-compose-linux-x86_64
+          echo "${ComposeSha256}  /usr/local/lib/docker/cli-plugins/docker-compose" | sha256sum -c -
+          chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+          docker compose version
+          # Security updates nightly; kernel updates wait for a planned reboot.
+          dnf install -y dnf-automatic
+          sed -i 's/^upgrade_type.*/upgrade_type = security/; s/^apply_updates.*/apply_updates = yes/' /etc/dnf/automatic.conf
+          systemctl enable --now dnf-automatic.timer
+      Tags:
+        - {Key: Name, Value: !Sub 'citanz-${EnvironmentName}'}
+        - {Key: Project, Value: citanz}
+        - {Key: Environment, Value: !Ref EnvironmentName}
+        - {Key: Snapshot, Value: !Sub 'citanz-${EnvironmentName}'}
+        - {Key: ManagedBy, Value: cloudformation}
+
+  ElasticIp:
+    Type: AWS::EC2::EIP
+    DependsOn: GatewayAttachment
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref Instance
+      Tags: [{Key: Name, Value: !Sub 'citanz-${EnvironmentName}'}, {Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  OriginRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref OriginDomainName
+      Type: A
+      TTL: '300'
+      ResourceRecords: [!Ref ElasticIp]
+
+  # Security headers. Not the managed SecurityHeadersPolicy: in a test it sent
+  # HSTS without max-age (so browsers ignore it) and with includeSubDomains and
+  # preload, which would force HTTPS on every cita.org.nz name and is hard to
+  # undo. Headers the site already sends (X-Frame-Options) are kept.
+  SecurityHeaders:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: !Sub 'citanz-${EnvironmentName}-security'
+        SecurityHeadersConfig:
+          StrictTransportSecurity: {AccessControlMaxAgeSec: 31536000, IncludeSubdomains: false, Preload: false, Override: true}
+          ContentTypeOptions: {Override: true}
+          FrameOptions: {FrameOption: SAMEORIGIN, Override: false}
+          ReferrerPolicy: {ReferrerPolicy: strict-origin-when-cross-origin, Override: false}
+
+  # CloudFront forwards the visitor's Host header, so the server's Caddy
+  # certificate is for the site names (www.cita.org.nz), issued by Let's
+  # Encrypt over HTTP-01 through the acme-challenge behaviour. Nothing is
+  # cached for now (1:1 move of a logged-in site); static caching can follow.
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_34
+            comment: Only /.well-known/acme-challenge/* allows plain HTTP (Let's Encrypt HTTP-01 starts on port 80); everything else redirects to HTTPS.
+          - id: CKV_AWS_86
+            comment: Not in the first version (needs a log bucket with ACLs); WAF metrics and sampled requests cover blocked traffic. Can be added before cutover.
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub citanz ${EnvironmentName}
+        Aliases: !Ref SiteDomainNames
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: PriceClass_All   # New Zealand and Australia edges are only in "All"
+        WebACLId: !Ref WebAclArn
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        Origins:
+          - Id: server-https
+            DomainName: !Ref OriginDomainName
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: [TLSv1.2]
+              OriginReadTimeout: 60
+          - Id: server-http-acme
+            DomainName: !Ref OriginDomainName
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+        DefaultCacheBehavior:
+          TargetOriginId: server-https
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad          # Managed-CachingDisabled
+          OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3  # Managed-AllViewer (forwards Host)
+          ResponseHeadersPolicyId: !Ref SecurityHeaders
+        CacheBehaviors:
+          - PathPattern: /.well-known/acme-challenge/*
+            TargetOriginId: server-http-acme
+            ViewerProtocolPolicy: allow-all
+            AllowedMethods: [GET, HEAD]
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+      Tags: [{Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  # Nightly database dump and uploaded files (written by the server, which
+  # may only put objects). Private, encrypted, TLS only, versioned, expires
+  # after BackupRetentionDays. Kept if the stack is deleted.
+  BackupBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Metadata:
+      checkov:
+        skip:
+          - id: CKV_AWS_18
+            comment: Access logging would need a second bucket; only the server role and administrators can reach this one.
+    Properties:
+      BucketName: !If [IsProduction, !Sub 'citanz-prod-backups-${AWS::AccountId}', !Sub 'citanz-trial-backups-${AWS::AccountId}']
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}
+            BucketKeyEnabled: true
+      PublicAccessBlockConfiguration: {BlockPublicAcls: true, BlockPublicPolicy: true, IgnorePublicAcls: true, RestrictPublicBuckets: true}
+      OwnershipControls: {Rules: [{ObjectOwnership: BucketOwnerEnforced}]}
+      VersioningConfiguration: {Status: Enabled}
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-backups
+            Status: Enabled
+            ExpirationInDays: !Ref BackupRetentionDays
+            NoncurrentVersionExpiration: {NoncurrentDays: 7}
+            AbortIncompleteMultipartUpload: {DaysAfterInitiation: 2}
+      Tags: [{Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  BackupBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BackupBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: TlsOnly
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource: [!GetAtt BackupBucket.Arn, !Sub '${BackupBucket.Arn}/*']
+            Condition: {Bool: {'aws:SecureTransport': 'false'}}
+
+  # Where the server's nightly backup writes (read by scripts/deploy-prod.sh).
+  BackupBucketParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub ${ParameterPath}/BACKUP_BUCKET
+      Type: String
+      Value: !Ref BackupBucket
+      Description: citanz nightly backup bucket (from infra/prod.yml)
+      Tags: {Project: citanz, Environment: !Ref EnvironmentName}
+
+  # Daily snapshot of the server's disk, 7 kept. A second line of defence
+  # next to the nightly dump in S3.
+  SnapshotPolicy:
+    Type: AWS::DLM::LifecyclePolicy
+    Condition: HasSnapshotRole
+    Properties:
+      Description: !Sub citanz ${EnvironmentName} daily snapshots
+      State: ENABLED
+      ExecutionRoleArn: !Ref SnapshotRoleArn
+      PolicyDetails:
+        PolicyType: EBS_SNAPSHOT_MANAGEMENT
+        ResourceTypes: [VOLUME]
+        TargetTags: [{Key: Snapshot, Value: !Sub 'citanz-${EnvironmentName}'}]
+        Schedules:
+          - Name: daily
+            CreateRule: {Interval: 24, IntervalUnit: HOURS, Times: ['14:00']}   # 03:00 NZDT
+            RetainRule: {Count: 7}
+            CopyTags: true
+      Tags: [{Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  AlarmTopic:
+    Type: AWS::SNS::Topic
+    Condition: HasAlarmEmail
+    Properties:
+      KmsMasterKeyId: alias/aws/sns
+      Subscription: [{Protocol: email, Endpoint: !Ref AlarmEmail}]
+      Tags: [{Key: Project, Value: citanz}, {Key: Environment, Value: !Ref EnvironmentName}]
+
+  # AWS hardware or network fault: move the instance to healthy hardware
+  # (same disk, same IP).
+  RecoverAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: System status check failed - EC2 recovers the instance.
+      Namespace: AWS/EC2
+      MetricName: StatusCheckFailed_System
+      Dimensions: [{Name: InstanceId, Value: !Ref Instance}]
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions: !If
+        - HasAlarmEmail
+        - [!Sub 'arn:${AWS::Partition}:automate:${AWS::Region}:ec2:recover', !Ref AlarmTopic]
+        - [!Sub 'arn:${AWS::Partition}:automate:${AWS::Region}:ec2:recover']
+
+  # Server itself stuck (out of memory, kernel): reboot it.
+  RebootAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Instance status check failed - EC2 reboots the instance.
+      Namespace: AWS/EC2
+      MetricName: StatusCheckFailed_Instance
+      Dimensions: [{Name: InstanceId, Value: !Ref Instance}]
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 3
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions: !If
+        - HasAlarmEmail
+        - [!Sub 'arn:${AWS::Partition}:automate:${AWS::Region}:ec2:reboot', !Ref AlarmTopic]
+        - [!Sub 'arn:${AWS::Partition}:automate:${AWS::Region}:ec2:reboot']
+
+  # Standard credits: when they run out the CPU is throttled, not billed.
+  CpuCreditAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasAlarmEmail
+    Properties:
+      AlarmDescription: CPU credits low - the site will slow down; consider t3.medium.
+      Namespace: AWS/EC2
+      MetricName: CPUCreditBalance
+      Dimensions: [{Name: InstanceId, Value: !Ref Instance}]
+      Statistic: Minimum
+      Period: 300
+      EvaluationPeriods: 3
+      Threshold: 20
+      ComparisonOperator: LessThanThreshold
+      AlarmActions: [!Ref AlarmTopic]
+
+  # scripts/install-backup.sh sends CITANZ/BackupSucceeded after each
+  # nightly backup. No metric for 26 hours = the backup did not run or failed.
+  BackupMissingAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: HasAlarmEmail
+    Properties:
+      AlarmDescription: No successful nightly backup in the last 26 hours.
+      Namespace: CITANZ
+      MetricName: BackupSucceeded
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 26
+      DatapointsToAlarm: 26
+      Threshold: 1
+      ComparisonOperator: LessThanThreshold
+      TreatMissingData: breaching
+      AlarmActions: [!Ref AlarmTopic]
+
+Outputs:
+  InstanceId:
+    Value: !Ref Instance
+  OriginIp:
+    Value: !Ref ElasticIp
+  DistributionDomainName:
+    Description: At cutover, point the site names (alias A/AAAA) here.
+    Value: !GetAtt Distribution.DomainName
+  DistributionId:
+    Value: !Ref Distribution
+  BackupBucketName:
+    Value: !Ref BackupBucket
+  ConnectCommand:
+    Value: !Sub aws ssm start-session --region ${AWS::Region} --target ${Instance}

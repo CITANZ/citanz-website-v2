@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  citanz production server role, run by the AWS administrator in the
+  production account (ap-southeast-2) before infra/prod.yml. Least privilege:
+  Session Manager, read /citanz/prod/* parameters, send mail only from
+  cita.org.nz, write (not read or delete) nightly backups and send the backup
+  heartbeat metric. Also the role that
+  takes the daily disk snapshots.
+
+Parameters:
+  MailFromDomain:
+    Type: String
+    Default: cita.org.nz
+    Description: The server may send mail only with a From address at this domain.
+  BackupBucketName:
+    Type: String
+    Default: ''
+    Description: >-
+      Leave empty to use citanz-prod-backups-<account id>, the name prod.yml
+      gives its bucket.
+
+Conditions:
+  DefaultBucketName: !Equals [!Ref BackupBucketName, '']
+
+Resources:
+  ServerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: citanz-prod-ec2
+      Description: citanz production EC2 server
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: ec2.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: citanz-prod-ec2
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: ReadProdParameters
+                Effect: Allow
+                Action: [ssm:GetParameter, ssm:GetParameters, ssm:GetParametersByPath]
+                Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/citanz/prod/*
+              - Sid: DecryptParametersOnlyThroughSsm
+                Effect: Allow
+                Action: kms:Decrypt
+                Resource: !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/*
+                Condition:
+                  StringEquals: {'kms:ViaService': !Sub 'ssm.${AWS::Region}.amazonaws.com'}
+              - Sid: SendFromSiteDomainOnly
+                Effect: Allow
+                Action: [ses:SendEmail, ses:SendRawEmail]
+                Resource: !Sub arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/*
+                Condition:
+                  StringLike: {'ses:FromAddress': !Sub '*@${MailFromDomain}'}
+              - Sid: WriteBackupsOnly
+                Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub
+                  - arn:${AWS::Partition}:s3:::${Bucket}/*
+                  - Bucket: !If [DefaultBucketName, !Sub 'citanz-prod-backups-${AWS::AccountId}', !Ref BackupBucketName]
+              - Sid: BackupHeartbeatOnly
+                Effect: Allow
+                Action: cloudwatch:PutMetricData
+                Resource: '*'
+                Condition:
+                  StringEquals: {'cloudwatch:namespace': CITANZ}
+      Tags: [{Key: Project, Value: citanz}, {Key: Environment, Value: production}]
+
+  ServerInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: citanz-prod-ec2
+      Roles: [!Ref ServerRole]
+
+  # Used by the Data Lifecycle Manager policy in prod.yml for daily snapshots.
+  SnapshotRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: citanz-prod-snapshots
+      Description: Daily EBS snapshots of the citanz production server
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: dlm.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSDataLifecycleManagerServiceRole
+      Tags: [{Key: Project, Value: citanz}, {Key: Environment, Value: production}]
+
+Outputs:
+  InstanceProfileName:
+    Value: !Ref ServerInstanceProfile
+  SnapshotRoleArn:
+    Value: !GetAtt SnapshotRole.Arn
