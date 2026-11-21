@@ -1,0 +1,40 @@
+# Outgoing mail. Pick the transport with environment variables (never in git):
+#   SS_SES_REGION set  -> Amazon SES API (dev and production). Credentials come
+#                         from the EC2 instance role, even when .env also holds
+#                         AWS_ACCESS_KEY_ID for CV uploads (SesClientFactory);
+#                         no mail password is stored.
+#   SS_SMTP_HOST set   -> plain SMTP (local: the Mailpit container).
+#   neither            -> SilverStripe's default (PHP mail()), as before.
+# If both are set, SES wins.
+# Leave a variable out of .env to turn it off; an empty value still counts as set.
+---
+Name: app-email-smtp
+After: '#emailconfig'
+Only:
+  envvarset: SS_SMTP_HOST
+Except:
+  envvarset: SS_SES_REGION
+---
+SilverStripe\Core\Injector\Injector:
+  Swift_Transport:
+    class: Swift_SmtpTransport
+    constructor:
+      host: '`SS_SMTP_HOST`'
+      port: '`SS_SMTP_PORT`'
+---
+Name: app-email-ses
+After: '#emailconfig'
+Only:
+  envvarset: SS_SES_REGION
+---
+SilverStripe\Core\Injector\Injector:
+  Aws\Ses\SesClient:
+    factory: App\Web\Email\SesClientFactory
+    constructor:
+      configuration:
+        region: '`SS_SES_REGION`'
+        version: '2010-12-01'
+  Swift_Transport:
+    class: App\Web\Email\SesApiTransport
+    constructor:
+      client: '%$Aws\Ses\SesClient'
