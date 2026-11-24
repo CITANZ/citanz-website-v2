@@ -1,0 +1,36 @@
+# dev.cita.org.nz overlay (runs on the nonprod EC2). Use with:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Differences from local: no ports on web/database; Caddy in front does HTTPS
+# (Let's Encrypt) and a site-wide password. .env on the box is written by
+# scripts/deploy-dev.sh from Parameter Store /citanz/dev, never from git.
+services:
+  web:
+    ports: !reset []
+    networks:
+      default:
+        # Fixed so the host firewall can let only this container reach the
+        # EC2 metadata service (instance role). See scripts/deploy-dev.sh.
+        ipv4_address: 172.30.0.10
+  database:
+    ports: !reset []
+  caddy:
+    image: caddy:2.8
+    restart: unless-stopped
+    depends_on: [web]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./.local/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+
+volumes:
+  caddy-data:
+  caddy-config:
